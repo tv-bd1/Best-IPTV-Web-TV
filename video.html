@@ -3,260 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video.js IPTV Player</title>
+    <title>Best IPTV Player</title>
     <link href="https://vjs.zencdn.net/7.20.3/video-js.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
-            --primary: #00d2ff;
-            --bg: #0f0f0f;
-            --surface: #1a1a1a;
-            --header-height: 60px;
+            --bg-dark: #0f0f0f;
+            --surface: #1e1e1e;
+            --accent-blue: #3b82f6;
+            --text-gray: #b3b3b3;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        body { background: var(--bg); color: white; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        body { background-color: var(--bg-dark); color: white; }
 
-        /* --- ফিক্সড হেডার --- */
-        .fixed-header {
-            position: fixed;
-            top: 0; width: 100%;
-            height: var(--header-height);
-            background: rgba(15, 15, 15, 0.95);
-            backdrop-filter: blur(10px);
-            z-index: 1000;
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* --- প্লেয়ার সেকশন --- */
-        .player-section {
-            margin-top: var(--header-height);
-            width: 100%;
-            background: #000;
-        }
-
-        .video-container {
-            max-width: 900px;
-            margin: 0 auto;
+        /* --- Header & Logo Section --- */
+        .logo-section {
+            background: white;
+            text-align: center;
+            padding: 20px 0;
             position: relative;
         }
-
-        /* Video.js কাস্টমাইজেশন */
-        .video-js {
-            width: 100%;
-            aspect-ratio: 16/9;
-        }
+        .logo-img { height: 80px; } /* আপনার লোগোর সাইজ অনুযায়ী */
+        
+        /* --- Video Player Styling --- */
+        .video-wrapper { width: 100%; background: #000; position: relative; }
+        .video-js { width: 100%; aspect-ratio: 16/9; }
+        
+        /* ভিডিওর ওপর বড় প্লে বাটন কাস্টমাইজ */
         .vjs-big-play-button {
+            background-color: rgba(0,0,0,0.5) !important;
+            border: none !important;
+            width: 80px !important; height: 80px !important;
+            line-height: 80px !important; border-radius: 50% !important;
             top: 50% !important; left: 50% !important;
             transform: translate(-50%, -50%) !important;
-            border-radius: 50% !important;
-            width: 60px !important; height: 60px !important;
-            line-height: 60px !important;
         }
 
-        /* --- ফিক্সড সার্চ বার (প্লেয়ারের নিচে) --- */
-        .sticky-search {
-            position: sticky;
-            top: var(--header-height);
-            background: var(--bg);
-            padding: 15px 20px;
-            z-index: 999;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        /* --- Navigation Buttons (All, Categories, Favorites) --- */
+        .nav-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px 10px;
+            background: #121212;
+        }
+        .nav-btn {
+            background: #2a2a2a;
+            color: var(--text-gray);
+            border: none;
+            padding: 10px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .nav-btn.active {
+            background: var(--accent-blue);
+            color: white;
         }
 
-        .search-wrapper {
-            max-width: 900px;
-            margin: 0 auto;
-            position: relative;
+        /* --- Search Bar --- */
+        .search-area {
+            padding: 10px 15px;
+            background: #121212;
         }
-
-        .search-box {
+        .search-input {
             width: 100%;
-            padding: 12px 45px;
-            background: var(--surface);
+            background: #262626;
             border: 1px solid #333;
-            border-radius: 10px;
+            padding: 12px 15px;
+            border-radius: 8px;
             color: white;
             outline: none;
-            font-size: 1rem;
         }
 
-        .search-box:focus { border-color: var(--primary); }
-        .search-wrapper i {
-            position: absolute; left: 15px; top: 14px; color: #666;
-        }
-
-        /* --- ৩ কলাম চ্যানেল লিস্ট --- */
-        .content-area {
-            max-width: 900px;
-            margin: 20px auto;
-            padding: 0 10px;
-        }
-
-        .channel-grid {
+        /* --- 3-Column Channel List with Round Logos --- */
+        .channel-list {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 15px;
-            padding-bottom: 40px;
+            padding: 15px;
         }
-
-        .channel-card {
-            background: var(--surface);
-            padding: 15px 5px;
-            border-radius: 15px;
+        .channel-item {
             text-align: center;
             cursor: pointer;
-            transition: 0.3s;
-            border: 1px solid transparent;
         }
-
-        .channel-card:hover { 
-            background: #252525; 
-            transform: translateY(-5px); 
-            border-color: var(--primary); 
-        }
-
-        .logo-circle {
+        .circle-logo {
             width: 65px; height: 65px;
-            margin: 0 auto 10px;
+            background: #000;
             border-radius: 50%;
+            margin: 0 auto 8px;
             overflow: hidden;
             border: 2px solid #333;
-            background: #000;
+            display: flex; align-items: center; justify-content: center;
         }
-
-        .logo-circle img { width: 100%; height: 100%; object-fit: cover; }
-
+        .circle-logo img { width: 100%; height: 100%; object-fit: cover; }
         .channel-name {
-            font-size: 0.8rem;
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            color: #ccc;
-        }
-
-        /* মোবাইল অপ্টিমাইজেশন */
-        @media (max-width: 600px) {
-            .logo-circle { width: 55px; height: 55px; }
-            .channel-name { font-size: 0.75rem; }
+            font-size: 0.75rem;
+            color: var(--text-gray);
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
     </style>
 </head>
 <body>
 
-    <header class="fixed-header">
-        <h2 style="color: var(--primary); font-size: 1.1rem;"><i class="fas fa-bolt"></i> VJS PLAYER</h2>
-        <div id="status" style="font-size: 0.7rem; opacity: 0.6;">Ready</div>
-    </header>
-
-    <div class="player-section">
-        <div class="video-container">
-            <video id="my-video" class="video-js vjs-big-play-centered vjs-theme-city" controls preload="auto" data-setup='{}'>
-                <p class="vjs-no-js">To view this video please enable JavaScript</p>
-            </video>
-        </div>
+    <div class="logo-section">
+        <img src="https://i.ibb.co/vYm6zG0/best-iptv-logo.png" alt="Best IPTV" class="logo-img">
     </div>
 
-    <div class="sticky-search">
-        <div class="search-wrapper">
-            <i class="fas fa-search"></i>
-            <input type="text" id="searchBox" class="search-box" placeholder="চ্যানেল সার্চ করুন...">
-        </div>
+    <div class="video-wrapper">
+        <video id="iptv-video" class="video-js vjs-big-play-centered" controls preload="auto" data-setup='{}'>
+            <p class="vjs-no-js">JavaScript is required to view this video.</p>
+        </video>
     </div>
 
-    <main class="content-area">
-        <div class="channel-grid" id="channelList">
-            </div>
-    </main>
+    <div class="nav-container">
+        <button class="nav-btn"><i class="fas fa-th-large"></i> All</button>
+        <button class="nav-btn"><i class="fas fa-list"></i> Categories</button>
+        <button class="nav-btn active"><i class="fas fa-heart"></i> Favorites</button>
+    </div>
+
+    <div class="search-area">
+        <input type="text" id="searchBox" class="search-input" placeholder="Search channels...">
+    </div>
+
+    <div class="channel-list" id="channelGrid">
+        </div>
 
     <script src="https://vjs.zencdn.net/7.20.3/video.min.js"></script>
     <script>
-        const player = videojs('my-video');
-        const channelGrid = document.getElementById('channelList');
-        const searchBox = document.getElementById('searchBox');
-        const statusText = document.getElementById('status');
-        
+        const player = videojs('iptv-video');
+        const grid = document.getElementById('channelGrid');
+        const searchInput = document.getElementById('searchBox');
         let channelsData = [];
 
-        // স্ট্রীম প্লে করার ফাংশন
-        function playStream(url, name) {
-            statusText.innerText = "Loading: " + name;
-            player.src({
-                src: url,
-                type: url.includes('.m3u8') ? 'application/x-mpegURL' : 'video/mp4'
-            });
+        // প্লে করার ফাংশন
+        function play(url) {
+            player.src({ src: url, type: 'application/x-mpegURL' });
             player.play();
-            statusText.innerText = "Playing: " + name;
-            
-            // স্ক্রল করে প্লেয়ারে নিয়ে যাওয়া (মোবাইলের জন্য ভালো)
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // M3U ফেচিং এবং পার্সিং
-        async function loadPlaylist() {
+        // M3U ফেচিং
+        async function loadData() {
             const params = new URLSearchParams(window.location.search);
-            const m3uUrl = params.get('playlist');
-            if (!m3uUrl) return;
+            const m3u = params.get('playlist');
+            if(!m3u) return;
 
             try {
-                const res = await fetch(m3uUrl);
-                const data = await res.text();
-                channelsData = parseM3U(data);
-                renderChannels(channelsData);
-            } catch (e) {
-                statusText.innerText = "Error loading list";
-            }
+                const res = await fetch(m3u);
+                const text = await res.text();
+                channelsData = parse(text);
+                render(channelsData);
+            } catch (e) { console.error("Error loading M3U"); }
         }
 
-        function parseM3U(data) {
+        function parse(data) {
             const lines = data.split('\n');
-            const list = [];
+            const result = [];
             let current = null;
-
             lines.forEach(line => {
-                line = line.trim();
                 if (line.startsWith('#EXTINF:')) {
                     const name = line.split(',').pop();
                     const logo = line.match(/tvg-logo="([^"]*)"/)?.[1] || '';
-                    current = { name, logo, url: '' };
-                } else if (line && !line.startsWith('#')) {
-                    if (current) {
-                        current.url = line;
-                        list.push(current);
-                        current = null;
-                    }
+                    current = { name, logo };
+                } else if (line.trim() && !line.startsWith('#')) {
+                    if (current) { result.push({...current, url: line.trim()}); current = null; }
                 }
             });
-            return list;
+            return result;
         }
 
-        function renderChannels(items) {
-            channelGrid.innerHTML = '';
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'channel-card';
-                card.innerHTML = `
-                    <div class="logo-circle">
+        function render(list) {
+            grid.innerHTML = list.length ? '' : '<p style="grid-column: span 3; text-align: center; color: gray; margin-top: 20px;">No channels found</p>';
+            list.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'channel-item';
+                div.innerHTML = `
+                    <div class="circle-logo">
                         <img src="${item.logo}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/716/716429.png'">
                     </div>
                     <div class="channel-name">${item.name}</div>
                 `;
-                card.onclick = () => playStream(item.url, item.name);
-                channelGrid.appendChild(card);
+                div.onclick = () => play(item.url);
+                grid.appendChild(div);
             });
         }
 
-        // সার্চ লজিক
-        searchBox.oninput = () => {
-            const query = searchBox.value.toLowerCase();
-            const filtered = channelsData.filter(c => c.name.toLowerCase().includes(query));
-            renderChannels(filtered);
+        searchInput.oninput = () => {
+            const q = searchInput.value.toLowerCase();
+            render(channelsData.filter(c => c.name.toLowerCase().includes(q)));
         };
 
-        window.onload = loadPlaylist;
+        window.onload = loadData;
     </script>
 </body>
 </html>
