@@ -3,86 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playing - Live TV</title>
+    <title>Live TV - List View</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
         :root {
             --bg-black: #000000;
-            --card-bg: #ffffff;
+            --card-black: #121212; /* ডার্ক কার্ড */
             --text-white: #ffffff;
             --accent-blue: #2196F3;
-            --gray-text: #b3b3b3;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
 
-        body { background-color: var(--bg-black); color: var(--text-white); overflow-x: hidden; }
+        body { 
+            background-color: var(--bg-black); 
+            color: var(--text-white); 
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden; 
+        }
 
-        .header { padding: 15px; display: flex; align-items: center; background: #000; }
+        /* Header */
+        .header { padding: 15px; display: flex; align-items: center; background: #000; flex-shrink: 0; border-bottom: 1px solid #222; }
         .header i { font-size: 1.2rem; margin-right: 15px; cursor: pointer; }
 
-        /* Video Section */
-        .video-container {
+        /* Fixed Video Player */
+        .video-fixed-top {
             width: 100%;
             aspect-ratio: 16/9;
             background: #000;
             position: relative;
+            z-index: 10;
+            flex-shrink: 0;
         }
-
         video { width: 100%; height: 100%; }
 
         .controls-overlay {
             position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.4);
             display: flex; flex-direction: column; justify-content: space-between;
             padding: 10px; opacity: 1; transition: opacity 0.3s;
         }
 
         .mid-btns { display: flex; justify-content: center; align-items: center; gap: 40px; flex-grow: 1; }
-        .mid-btns i { font-size: 2rem; cursor: pointer; }
+        .mid-btns i { font-size: 2rem; cursor: pointer; color: #fff; }
 
         .bottom-controls { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; }
         .progress-bar { flex-grow: 1; height: 4px; background: rgba(255,255,255,0.3); border-radius: 2px; position: relative; cursor: pointer; }
-        .progress-fill { height: 100%; background: #fff; width: 0%; }
+        .progress-fill { height: 100%; background: var(--accent-blue); width: 0%; }
 
-        /* Channel Info */
-        .info-section { padding: 20px; display: flex; align-items: center; gap: 15px; }
-        .logo-circle { width: 55px; height: 55px; border-radius: 50%; border: 2px solid #fff; background: #222; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-        .logo-circle img { width: 100%; height: 100%; object-fit: cover; }
+        /* Scrollable List Area */
+        .scrollable-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
 
+        .info-section { padding: 10px 5px; display: flex; align-items: center; gap: 12px; }
         .meta h2 { font-size: 1.1rem; }
-        .meta p { font-size: 0.8rem; color: var(--gray-text); margin-top: 3px; }
+        .meta p { font-size: 0.8rem; color: #888; }
 
-        /* Action Buttons */
-        .actions { display: flex; justify-content: space-around; padding: 15px 0; border-bottom: 1px solid #333; }
-        .act-btn { text-align: center; font-size: 0.75rem; cursor: pointer; }
-        .act-btn i { display: block; font-size: 1.2rem; margin-bottom: 5px; }
+        /* Channel List Style (1, 2, 3...) */
+        .channel-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 10px;
+        }
 
-        /* Grid Channels */
-        .related { padding: 20px; }
-        .related h3 { font-size: 1rem; margin-bottom: 15px; }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .channel-row {
+            display: flex;
+            align-items: center;
+            background: var(--card-black);
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid #222;
+            transition: background 0.2s;
+        }
 
-        .card { background: var(--card-bg); border-radius: 12px; padding: 12px 8px; text-align: center; position: relative; cursor: pointer; }
-        .card img { width: 100%; height: 45px; object-fit: contain; margin-bottom: 8px; }
-        .card span { color: #333; font-size: 0.75rem; font-weight: bold; display: block; white-space: nowrap; overflow: hidden; }
-        .star { position: absolute; top: 5px; right: 5px; color: var(--accent-blue); font-size: 0.7rem; }
+        .channel-row:active { background: #1a1a1a; }
+        .channel-row.active { border-color: var(--accent-blue); background: #1a1a1a; }
 
-        .loading-text { text-align: center; padding: 20px; color: var(--gray-text); }
+        .channel-index {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: var(--accent-blue);
+            width: 25px;
+        }
+
+        .channel-logo-img {
+            width: 45px;
+            height: 45px;
+            border-radius: 6px;
+            object-fit: contain;
+            background: #222;
+            margin: 0 15px;
+        }
+
+        .channel-name-text {
+            flex-grow: 1;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #eee;
+        }
+
+        .favorite-star {
+            color: var(--accent-blue);
+            font-size: 1rem;
+        }
+
+        .loading-text { text-align: center; padding: 20px; color: #666; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <i class="fas fa-arrow-left" onclick="history.back()"></i>
-        <span>Playing</span>
+        <span id="headerTitle">Live TV</span>
     </div>
 
-    <div class="video-container" id="playerArea">
-        <video id="videoPlayer"></video>
+    <div class="video-fixed-top" id="playerArea">
+        <video id="videoPlayer" playsinline></video>
         <div class="controls-overlay" id="overlay">
-            <div style="text-align: right;"><span id="brandLabel" style="font-size: 0.7rem; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px;">LIVE</span></div>
+            <div style="text-align: right;"><span style="font-size: 0.6rem; background: var(--accent-blue); padding: 2px 6px; border-radius: 3px; font-weight: bold;">LIVE</span></div>
             <div class="mid-btns">
                 <i class="fas fa-backward" onclick="rewind()"></i>
                 <i class="fas fa-play" id="ppIcon" onclick="togglePlay()"></i>
@@ -100,24 +146,16 @@
         </div>
     </div>
 
-    <div class="info-section">
-        <div class="logo-circle" id="mainLogo"><i class="fas fa-tv"></i></div>
-        <div class="meta">
-            <h2 id="chName">Loading...</h2>
-            <p>Watch this channel live streaming 24/7.</p>
+    <div class="scrollable-content">
+        <div class="info-section">
+            <div class="meta">
+                <h2 id="currentTitle">Select Channel</h2>
+                <p id="currentDesc">You are watching live stream</p>
+            </div>
         </div>
-    </div>
 
-    <div class="actions">
-        <div class="act-btn"><i class="fas fa-share-alt"></i>Share</div>
-        <div class="act-btn"><i class="far fa-star"></i>My List</div>
-        <div class="act-btn"><i class="fab fa-telegram-plane"></i>Join Telegram</div>
-    </div>
-
-    <div class="related">
-        <h3>Related Channels</h3>
-        <div class="grid" id="channelGrid">
-            <div class="loading-text">Parsing Playlist...</div>
+        <div class="channel-list" id="listContainer">
+            <div class="loading-text">Loading Playlist...</div>
         </div>
     </div>
 
@@ -127,24 +165,22 @@
     const pFill = document.getElementById('pFill');
     let hls = new Hls();
 
-    // 1. Get Playlist URL from URL Params
     const urlParams = new URLSearchParams(window.location.search);
     const playlistUrl = urlParams.get('playlist');
 
-    // 2. Load and Parse M3U
-    async function fetchPlaylist() {
+    async function loadPlaylist() {
         if (!playlistUrl) return;
         try {
-            const response = await fetch(playlistUrl);
-            const data = await response.text();
-            parseM3U(data);
+            const res = await fetch(playlistUrl);
+            const text = await res.text();
+            parseM3U(text);
         } catch (e) {
-            document.getElementById('channelGrid').innerHTML = "Error loading playlist.";
+            document.getElementById('listContainer').innerHTML = "Error loading.";
         }
     }
 
-    function parseM3U(content) {
-        const lines = content.split('\n');
+    function parseM3U(data) {
+        const lines = data.split('\n');
         const channels = [];
         let current = {};
 
@@ -152,43 +188,47 @@
             if (line.startsWith('#EXTINF:')) {
                 const nameMatch = line.split(',')[1];
                 const logoMatch = line.match(/tvg-logo="([^"]*)"/);
-                current.name = nameMatch ? nameMatch.trim() : "Unknown";
+                current.name = nameMatch ? nameMatch.trim() : "Channel";
                 current.logo = logoMatch ? logoMatch[1] : "";
-            } else if (line.startsWith('http')) {
+            } else if (line.trim().startsWith('http')) {
                 current.url = line.trim();
                 channels.push({...current});
                 current = {};
             }
         });
-        displayChannels(channels);
+        renderList(channels);
     }
 
-    function displayChannels(list) {
-        const grid = document.getElementById('channelGrid');
-        grid.innerHTML = "";
-        list.forEach((ch, index) => {
-            const card = document.createElement('div');
-            card.className = 'card';
-            card.innerHTML = `
-                <i class="fas fa-star star"></i>
-                <img src="${ch.logo || 'https://via.placeholder.com/50?text=TV'}" onerror="this.src='https://via.placeholder.com/50?text=TV'">
-                <span>${ch.name}</span>
+    function renderList(list) {
+        const container = document.getElementById('listContainer');
+        container.innerHTML = "";
+        
+        list.forEach((ch, i) => {
+            const row = document.createElement('div');
+            row.className = 'channel-row';
+            row.innerHTML = `
+                <div class="channel-index">${i + 1}</div>
+                <img class="channel-logo-img" src="${ch.logo || 'https://via.placeholder.com/50?text=TV'}" onerror="this.src='https://via.placeholder.com/50?text=TV'">
+                <div class="channel-name-text">${ch.name}</div>
+                <i class="fas fa-star favorite-star"></i>
             `;
-            card.onclick = () => playStream(ch.url, ch.name, ch.logo);
-            grid.appendChild(card);
-            
-            // Auto play first channel
-            if(index === 0) playStream(ch.url, ch.name, ch.logo);
+            row.onclick = () => {
+                playStream(ch.url, ch.name);
+                document.querySelectorAll('.channel-row').forEach(r => r.classList.remove('active'));
+                row.classList.add('active');
+            };
+            container.appendChild(row);
+
+            // Auto play first
+            if(i === 0) {
+                playStream(ch.url, ch.name);
+                row.classList.add('active');
+            }
         });
     }
 
-    function playStream(url, name, logo) {
-        document.getElementById('chName').innerText = name;
-        document.getElementById('brandLabel').innerText = name.toUpperCase();
-        if (logo) {
-            document.getElementById('mainLogo').innerHTML = `<img src="${logo}">`;
-        }
-
+    function playStream(url, name) {
+        document.getElementById('currentTitle').innerText = name;
         if (Hls.isSupported()) {
             hls.destroy();
             hls = new Hls();
@@ -202,48 +242,34 @@
         ppIcon.className = "fas fa-pause";
     }
 
-    // Controls Logic
+    // Player Controls
     function togglePlay() {
         if (video.paused) { video.play(); ppIcon.className = "fas fa-pause"; }
         else { video.pause(); ppIcon.className = "fas fa-play"; }
     }
-
     function rewind() { video.currentTime -= 10; }
     function forward() { video.currentTime += 10; }
     function toggleMute() {
         video.muted = !video.muted;
         document.getElementById('muteIcon').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up";
     }
-
     video.addEventListener('timeupdate', () => {
         const pct = (video.currentTime / video.duration) * 100;
         pFill.style.width = pct + '%';
         document.getElementById('cTime').innerText = formatTime(video.currentTime);
         document.getElementById('dTime').innerText = formatTime(video.duration);
     });
-
     function formatTime(s) {
         if (isNaN(s)) return "00:00";
-        let m = Math.floor(s / 60);
-        let sec = Math.floor(s % 60);
+        let m = Math.floor(s / 60), sec = Math.floor(s % 60);
         return (m < 10 ? '0' : '') + m + ":" + (sec < 10 ? '0' : '') + sec;
     }
-
     function toggleFull() {
         if (video.requestFullscreen) video.requestFullscreen();
         else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
     }
 
-    // Auto-hide overlay
-    let timer;
-    document.getElementById('playerArea').addEventListener('click', () => {
-        const ov = document.getElementById('overlay');
-        ov.style.opacity = 1;
-        clearTimeout(timer);
-        timer = setTimeout(() => ov.style.opacity = 0, 3000);
-    });
-
-    window.onload = fetchPlaylist;
+    window.onload = loadPlaylist;
 </script>
 </body>
 </html>
