@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro Live TV Player</title>
+<title>Live TV Player Pro</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -13,7 +13,7 @@
   --bg:#0a0a0a;
   --card:#1a1a1a;
   --accent:#2196F3;
-  --fav:#ff4b2b;
+  --fav:#ff4b2b; /* ফেভারিট লাল রঙ */
   --text:#fff;
 }
 
@@ -45,7 +45,6 @@ body{
   width:100%;
   aspect-ratio:16/9;
   background:#000;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 video{width:100%;height:100%}
 
@@ -70,15 +69,13 @@ video{width:100%;height:100%}
 .bottom-ctrl{
   position: absolute;
   bottom: 10px;
-  width: 95%;
+  width: 92%;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.9rem;
 }
-.bottom-ctrl i { cursor: pointer; font-size: 1.2rem; }
 
-/* INFO SECTION */
+/* INFO & ACTIONS */
 .fixed{ background:#000; }
 .info{ padding:15px; display:flex; justify-content:space-between; align-items: center;}
 .badge{ background:rgba(33, 150, 243, 0.1); padding:5px 12px; border-radius:6px; color:var(--accent); font-size:.8rem; border: 1px solid var(--accent);}
@@ -90,13 +87,13 @@ video{width:100%;height:100%}
   border-top:1px solid #222;
   border-bottom:1px solid #222;
 }
-.actions div{ text-align:center; font-size:.7rem; cursor:pointer; color: #888; transition: 0.3s;}
+.actions div{ text-align:center; font-size:.7rem; cursor:pointer; color: #888;}
 .actions i{ display:block; font-size:1.4rem; margin-bottom:6px; color: #fff; }
 .actions div.active-filter { color: var(--accent); }
 .actions div.active-filter i { color: var(--accent); }
 
 /* LIST */
-.list{ flex:1; overflow-y:auto; padding:15px; background: #0a0a0a;}
+.list{ flex:1; overflow-y:auto; padding:15px; }
 .row{
   display:flex;
   align-items:center;
@@ -107,21 +104,19 @@ video{width:100%;height:100%}
   margin-bottom:10px;
   cursor:pointer;
   transition: 0.3s;
-  border: 1px solid transparent;
 }
 
-/* WATCHING STYLE (Instead of Border) */
+/* WATCHING STYLE (Soft Gradient) */
 .row.active{
   background: linear-gradient(90deg, #1a1a1a 0%, #112a3d 100%);
   box-shadow: inset 0 0 10px rgba(33, 150, 243, 0.2);
-  transform: scale(1.02);
 }
 .row.active .name { color: var(--accent); font-weight: bold; }
 
-.logo{ width:50px; height:50px; border-radius:10px; background:#222; object-fit:contain; border: 1px solid #333;}
+.logo{ width:50px; height:50px; border-radius:8px; background:#222; object-fit:cover; border:1px solid #333;}
 .name{ flex:1; font-size: 0.95rem;}
 .star{ font-size:1.3rem; color:#444; transition: .3s; padding: 5px;}
-.star.active{ color:var(--fav); text-shadow: 0 0 10px rgba(255, 75, 43, 0.4);}
+.star.active{ color:var(--fav); } /* ফেভারিট স্টার লাল */
 </style>
 </head>
 
@@ -129,22 +124,20 @@ video{width:100%;height:100%}
 
 <div class="header" onclick="showAllChannels()">
   <i class="fas fa-arrow-left" onclick="history.back(); event.stopPropagation();"></i>
-  <span id="pageLabel" style="font-weight: bold; letter-spacing: 1px;">LIVE TV</span>
+  <span id="pageLabel">LIVE STREAM</span>
 </div>
 
 <div class="player-wrap" id="playerArea">
   <video id="video" playsinline></video>
-
   <div class="controls" id="controls">
     <div class="mid-ctrl">
         <i class="fas fa-backward" onclick="seek(-10)"></i>
         <i class="fas fa-play" id="pp" onclick="togglePlay()"></i>
         <i class="fas fa-forward" onclick="seek(10)"></i>
     </div>
-    
     <div class="bottom-ctrl">
-        <div id="timeDisplay">00:00</div>
-        <div style="display:flex; gap:20px;">
+        <div id="timeDisplay" style="font-size:0.9rem;">00:00</div>
+        <div style="display:flex; gap:15px;">
             <i class="fas fa-volume-up" id="volBtn" onclick="toggleMute()"></i>
             <i class="fas fa-expand" onclick="toggleFull()"></i>
         </div>
@@ -155,16 +148,16 @@ video{width:100%;height:100%}
 <div class="fixed">
   <div class="info">
     <div>
-      <h3 id="title" style="font-size: 1.1rem; margin-bottom: 2px;">Select Channel</h3>
-      <small style="color: #666;">Watching Live Stream</small>
+      <h3 id="title">Select Channel</h3>
+      <small style="color: #666;">Watching Live</small>
     </div>
     <div class="badge" id="count">0 Channels</div>
   </div>
 
   <div class="actions">
-    <div onclick="shareChannel()"><i class="fas fa-share-nodes"></i>Share</div>
-    <div id="myListTab" onclick="filterFavorites()"><i class="fas fa-heart"></i>My List</div>
-    <div onclick="window.open('https://t.me/yourchannel')"><i class="fab fa-telegram"></i>Telegram</div>
+    <div onclick="copyLink()"><i class="fas fa-share-nodes"></i>Share</div>
+    <div id="myListTab" onclick="filterFavorites()"><i class="fas fa-star"></i>My List</div>
+    <div onclick="window.open('https://t.me/bestiptvlive')"><i class="fab fa-telegram"></i>Telegram</div>
   </div>
 </div>
 
@@ -177,10 +170,9 @@ const pp=document.getElementById('pp');
 const volBtn=document.getElementById('volBtn');
 const timeDisplay=document.getElementById('timeDisplay');
 const listArea = document.getElementById('list');
-let hls=new Hls(), hideT;
-let allChannels = [];
+let hls=new Hls(), hideT, allChannels = [], currentUrl = "";
 
-/* CONTROLS LOGIC */
+/* CONTROLS */
 playerArea.onclick=()=>{
   controls.classList.add('show');
   clearTimeout(hideT);
@@ -204,12 +196,21 @@ function toggleFull(){
     else if(video.webkitRequestFullscreen) video.webkitRequestFullscreen();
 }
 
-// টাইম আপডেট
 video.ontimeupdate = () => {
     let m = Math.floor(video.currentTime / 60);
     let s = Math.floor(video.currentTime % 60);
     timeDisplay.innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
 };
+
+/* LINK COPY FUNCTION */
+function copyLink(){
+  if(currentUrl){
+    navigator.clipboard.writeText(currentUrl);
+    alert("Channel link copied!");
+  } else {
+    alert("Please select a channel first.");
+  }
+}
 
 /* FAVORITE LOGIC */
 const KEY="my_fav_channels";
@@ -219,7 +220,6 @@ const saveFav=d=>localStorage.setItem(KEY,JSON.stringify(d));
 function toggleFav(channel, iconEl){
   let favs = getFav();
   const index = favs.findIndex(x => x.url === channel.url);
-  
   if(index > -1){
     favs.splice(index, 1);
     iconEl.classList.remove('active');
@@ -230,21 +230,19 @@ function toggleFav(channel, iconEl){
   saveFav(favs);
 }
 
-/* UI FILTERS */
 function filterFavorites() {
-    const favs = getFav();
     document.getElementById('pageLabel').innerText = "Favorites";
     document.getElementById('myListTab').classList.add('active-filter');
-    render(favs);
+    render(getFav());
 }
 
 function showAllChannels() {
-    document.getElementById('pageLabel').innerText = "Live Stream";
+    document.getElementById('pageLabel').innerText = "LIVE STREAM";
     document.getElementById('myListTab').classList.remove('active-filter');
     render(allChannels);
 }
 
-/* PLAYLIST LOADER */
+/* LOAD M3U */
 const url=new URLSearchParams(location.search).get('playlist');
 if(url){
     fetch(url).then(r=>r.text()).then(data=>{
@@ -254,7 +252,8 @@ if(url){
         if(l.startsWith('#EXTINF')){
           c.name=l.split(',')[1]||"Channel";
           const m=l.match(/tvg-logo="([^"]*)"/);
-          c.logo=m?m[1]:"https://i.imgur.com/8Qf6Y0L.png";
+          // লোগো না থাকলে ডিফল্ট ইমেজ
+          c.logo= (m && m[1]) ? m[1] : "https://i.imgur.com/8Qf6Y0L.png";
         }else if(l.trim().startsWith('http')){
           c.url=l.trim(); arr.push({...c}); c={};
         }
@@ -274,9 +273,9 @@ function render(arr){
     const d=document.createElement('div');
     d.className="row";
     d.innerHTML=`
-      <img class="logo" src="${c.logo}" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
+      <img class="logo" src="${c.logo}" alt="tv" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
       <div class="name">${c.name}</div>
-      <i class="fas fa-heart star ${isFav?'active':''}"></i>
+      <i class="fas fa-star star ${isFav?'active':''}"></i>
     `;
     
     d.onclick=()=>{
@@ -291,11 +290,12 @@ function render(arr){
     };
     
     listArea.appendChild(d);
-    if(i===0 && !video.src) d.click();
+    if(i===0 && !video.src && document.getElementById('pageLabel').innerText !== "Favorites") d.click();
   });
 }
 
 function play(url,name){
+  currentUrl = url;
   title.innerText=name;
   if(Hls.isSupported()){
       hls.destroy(); hls=new Hls();
@@ -307,10 +307,6 @@ function play(url,name){
       video.play();
   }
   pp.className="fas fa-pause";
-}
-
-function shareChannel(){
-  if(navigator.share) navigator.share({title:title.innerText, url:location.href});
 }
 </script>
 
