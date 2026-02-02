@@ -1,270 +1,193 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Live TV Player</title>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
 <style>
-:root{
-  --bg:#000;
-  --card:#121212;
-  --accent:#2196F3;
-  --text:#fff;
-}
-
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-
 body{
-  background:var(--bg);
-  color:var(--text);
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:#0b0b0b;
+    color:#fff;
 }
-
-/* HEADER */
-.header{
-  height:50px;
-  display:flex;
-  align-items:center;
-  gap:15px;
-  padding:0 15px;
-  border-bottom:1px solid #222;
+header{
+    padding:10px;
+    background:#000;
+    display:flex;
+    align-items:center;
+    gap:10px;
 }
+header h2{margin:0;font-size:18px;}
 
-/* PLAYER */
 .player-wrap{
-  position:relative;
-  width:100%;
-  aspect-ratio:16/9;
-  background:#000;
+    position:relative;
 }
-video{width:100%;height:100%}
+#loader{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,.6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:5;
+}
+.spinner{
+    width:40px;
+    height:40px;
+    border:4px solid #444;
+    border-top:4px solid #0af;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+}
+@keyframes spin{100%{transform:rotate(360deg)}}
 
-/* CONTROLS */
-.controls{
-  position:absolute;
-  inset:0;
-  background:rgba(0,0,0,.55);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:40px;
-  opacity:0;
-  pointer-events:none;
-  transition:.3s;
-}
-.controls.show{
-  opacity:1;
-  pointer-events:auto;
-}
-.controls i{
-  font-size:2.2rem;
-  cursor:pointer;
-}
-
-/* FIXED ACTION */
-.fixed{
-  background:#000;
-  border-bottom:1px solid #222;
-}
-.info{
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-}
-.badge{
-  background:#111;
-  padding:4px 10px;
-  border-radius:20px;
-  color:var(--accent);
-  font-size:.75rem;
-}
 .actions{
-  display:flex;
-  justify-content:space-around;
-  padding:12px 0;
-  border-top:1px solid #222;
+    display:flex;
+    justify-content:space-around;
+    padding:10px;
+    border-bottom:1px solid #222;
 }
 .actions div{
-  text-align:center;
-  font-size:.75rem;
-  cursor:pointer;
-}
-.actions i{
-  display:block;
-  font-size:1.3rem;
-  margin-bottom:5px;
+    text-align:center;
+    cursor:pointer;
+    font-size:14px;
 }
 
-/* LIST */
-.list{
-  flex:1;
-  overflow-y:auto;
-  padding:15px;
+.channel-list{
+    padding:10px;
 }
-.row{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  background:var(--card);
-  padding:12px;
-  border-radius:12px;
-  border:1px solid #222;
-  margin-bottom:10px;
-  cursor:pointer;
+.channel{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:#151515;
+    padding:10px;
+    margin-bottom:8px;
+    border-radius:8px;
+    cursor:pointer;
 }
-.row.active{border-color:var(--accent)}
-.logo{
-  width:45px;
-  height:45px;
-  border-radius:8px;
-  background:#222;
-  object-fit:contain;
+.channel img{
+    width:40px;
+    height:40px;
+    object-fit:contain;
 }
-.name{flex:1}
+.channel i.logo-fallback{
+    font-size:28px;
+    color:#666;
+}
+.channel span{
+    flex:1;
+}
 .star{
-  font-size:1.2rem;
-  color:#777;
+    font-size:18px;
+    color:#555;
 }
-.star.active{color:var(--accent)}
+.star.active{
+    color:#0af;
+}
+.hidden{display:none;}
 </style>
 </head>
 
 <body>
 
-<div class="header">
-  <i class="fas fa-arrow-left" onclick="history.back()"></i>
-  <span>Live Stream</span>
+<header>
+    <i class="fa fa-arrow-left"></i>
+    <h2>Live Stream</h2>
+</header>
+
+<div class="player-wrap">
+    <div id="loader"><div class="spinner"></div></div>
+    <video id="player" class="video-js vjs-default-skin" controls playsinline></video>
 </div>
 
-<div class="player-wrap" id="playerArea">
-  <video id="video" playsinline></video>
-
-  <div class="controls" id="controls">
-    <i class="fas fa-backward" onclick="seek(-10)"></i>
-    <i class="fas fa-play" id="pp" onclick="togglePlay()"></i>
-    <i class="fas fa-forward" onclick="seek(10)"></i>
-  </div>
+<div class="actions">
+    <div onclick="showAll()"><i class="fa fa-list"></i><br>All</div>
+    <div onclick="showFav()"><i class="fa fa-star"></i><br>My List</div>
 </div>
 
-<div class="fixed">
-  <div class="info">
-    <div>
-      <h3 id="title">Select Channel</h3>
-      <small>Watching Live stream</small>
-    </div>
-    <div class="badge" id="count">Total: 0</div>
-  </div>
+<div class="channel-list" id="channelList"></div>
 
-  <div class="actions">
-    <div onclick="shareChannel()"><i class="fas fa-share-alt"></i>Share</div>
-    <div><i class="fas fa-star"></i>My List</div>
-    <div onclick="window.open('https://t.me/yourchannel')"><i class="fab fa-telegram"></i>Telegram</div>
-  </div>
-</div>
-
-<div class="list" id="list"></div>
+<script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
 
 <script>
-const video=document.getElementById('video');
-const controls=document.getElementById('controls');
-const pp=document.getElementById('pp');
-let hls=new Hls(),hideT;
+const channels = [
+ {id:1,name:"Akash Go",logo:"https://i.imgur.com/5x3JZQp.png",url:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"},
+ {id:2,name:"BTV",logo:"",url:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"},
+ {id:3,name:"BTV News",logo:"",url:"https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8"},
+];
 
-/* SHOW CONTROLS */
-playerArea.onclick=()=>{
-  controls.classList.add('show');
-  clearTimeout(hideT);
-  hideT=setTimeout(()=>controls.classList.remove('show'),3000);
-};
+let favs = JSON.parse(localStorage.getItem("favs")) || [];
 
-/* PLAYER */
-function togglePlay(){
-  if(video.paused){video.play();pp.className="fas fa-pause";}
-  else{video.pause();pp.className="fas fa-play";}
-}
-function seek(t){video.currentTime+=t}
-
-/* FAVORITE */
-const KEY="my_channels";
-const getFav=()=>JSON.parse(localStorage.getItem(KEY)||"[]");
-const saveFav=d=>localStorage.setItem(KEY,JSON.stringify(d));
-
-function toggleFav(name,icon){
-  let f=getFav();
-  if(f.includes(name)){
-    f=f.filter(x=>x!==name);
-    icon.classList.remove('active');
-  }else{
-    f.push(name);
-    icon.classList.add('active');
-  }
-  saveFav(f);
-}
-
-/* SHARE */
-function shareChannel(){
-  navigator.share?
-  navigator.share({title:title.innerText,url:location.href}):
-  (navigator.clipboard.writeText(location.href),alert("Link copied"));
-}
-
-/* LOAD PLAYLIST */
-const url=new URLSearchParams(location.search).get('playlist');
-fetch(url).then(r=>r.text()).then(data=>{
-  const lines=data.split('\n');
-  let arr=[],c={};
-  lines.forEach(l=>{
-    if(l.startsWith('#EXTINF')){
-      c.name=l.split(',')[1]||"Channel";
-      const m=l.match(/tvg-logo="([^"]*)"/);
-      c.logo=m?m[1]:"https://i.imgur.com/8Qf6Y0L.png";
-    }else if(l.startsWith('http')){
-      c.url=l.trim();arr.push({...c});c={};
-    }
-  });
-  count.innerText="Total: "+arr.length;
-  render(arr);
+const player = videojs("player",{
+    autoplay:true,
+    controls:true,
+    fluid:true
 });
 
-function render(arr){
-  const fav=getFav();
-  arr.forEach((c,i)=>{
-    const d=document.createElement('div');
-    d.className="row";
-    d.innerHTML=`
-      <img class="logo" src="${c.logo}" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
-      <div class="name">${c.name}</div>
-      <i class="fas fa-star star ${fav.includes(c.name)?'active':''}"></i>
-    `;
-    d.onclick=()=>{
-      play(c.url,c.name);
-      document.querySelectorAll('.row').forEach(x=>x.classList.remove('active'));
-      d.classList.add('active');
-    };
-    d.querySelector('.star').onclick=e=>{
-      e.stopPropagation();
-      toggleFav(c.name,e.target);
-    };
-    list.appendChild(d);
-    if(i===0)d.click();
-  });
+const loader = document.getElementById("loader");
+
+player.on("playing",()=>loader.style.display="none");
+player.on("waiting",()=>loader.style.display="flex");
+
+function isFav(id){
+    return favs.includes(id);
 }
 
-function play(url,name){
-  title.innerText=name;
-  hls.destroy();hls=new Hls();
-  hls.loadSource(url);
-  hls.attachMedia(video);
-  hls.on(Hls.Events.MANIFEST_PARSED,()=>video.play());
-  pp.className="fas fa-pause";
+function toggleFav(id){
+    if(isFav(id)){
+        favs = favs.filter(x=>x!==id);
+    }else{
+        favs.push(id);
+    }
+    localStorage.setItem("favs",JSON.stringify(favs));
+    render(channels);
 }
+
+function play(ch){
+    loader.style.display="flex";
+    player.src({src:ch.url,type:"application/x-mpegURL"});
+    player.play();
+}
+
+function render(list){
+    const box=document.getElementById("channelList");
+    box.innerHTML="";
+    list.forEach(ch=>{
+        const div=document.createElement("div");
+        div.className="channel";
+        div.innerHTML=`
+            ${ch.logo
+            ? `<img src="${ch.logo}" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">`
+            : ``}
+            <i class="fa fa-tv logo-fallback" style="display:${ch.logo?'none':'block'}"></i>
+            <span>${ch.name}</span>
+            <i class="fa fa-star star ${isFav(ch.id)?'active':''}"></i>
+        `;
+        div.onclick=()=>play(ch);
+        div.querySelector(".star").onclick=(e)=>{
+            e.stopPropagation();
+            toggleFav(ch.id);
+        };
+        box.appendChild(div);
+    });
+}
+
+function showFav(){
+    render(channels.filter(c=>isFav(c.id)));
+}
+
+function showAll(){
+    render(channels);
+}
+
+render(channels);
+play(channels[0]);
 </script>
 
 </body>
