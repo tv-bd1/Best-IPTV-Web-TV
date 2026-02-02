@@ -3,20 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live TV Player</title>
+<title>Pro Live TV Player</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
 :root{
-  --bg:#000;
-  --card:#121212;
+  --bg:#0a0a0a;
+  --card:#1a1a1a;
   --accent:#2196F3;
+  --fav:#ff4b2b;
   --text:#fff;
 }
 
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+*{margin:0;padding:0;box-sizing:border-box;font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif}
 
 body{
   background:var(--bg);
@@ -29,20 +30,22 @@ body{
 
 /* HEADER */
 .header{
-  height:50px;
+  height:60px;
   display:flex;
   align-items:center;
   gap:15px;
-  padding:0 15px;
+  padding:0 20px;
+  background: #111;
   border-bottom:1px solid #222;
 }
 
-/* PLAYER */
+/* PLAYER AREA */
 .player-wrap{
   position:relative;
   width:100%;
   aspect-ratio:16/9;
   background:#000;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
 }
 video{width:100%;height:100%}
 
@@ -50,68 +53,50 @@ video{width:100%;height:100%}
 .controls{
   position:absolute;
   inset:0;
-  background:rgba(0,0,0,.55);
+  background:rgba(0,0,0,.6);
   display:flex;
+  flex-direction: column;
   justify-content:center;
   align-items:center;
-  gap:40px;
   opacity:0;
   pointer-events:none;
   transition:.3s;
 }
-.controls.show{
-  opacity:1;
-  pointer-events:auto;
-}
-.controls i{
-  font-size:2.2rem;
-  cursor:pointer;
-}
+.controls.show{ opacity:1; pointer-events:auto; }
 
-/* FIXED ACTION */
-.fixed{
-  background:#000;
-  border-bottom:1px solid #222;
+.mid-ctrl{ display:flex; gap:30px; align-items:center; margin-bottom: 20px;}
+.mid-ctrl i{ font-size:2.5rem; cursor:pointer; }
+
+.bottom-ctrl{
+  position: absolute;
+  bottom: 10px;
+  width: 95%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
 }
-.info{
-  padding:15px;
-  display:flex;
-  justify-content:space-between;
-}
-.badge{
-  background:#111;
-  padding:4px 10px;
-  border-radius:20px;
-  color:var(--accent);
-  font-size:.75rem;
-}
+.bottom-ctrl i { cursor: pointer; font-size: 1.2rem; }
+
+/* INFO SECTION */
+.fixed{ background:#000; }
+.info{ padding:15px; display:flex; justify-content:space-between; align-items: center;}
+.badge{ background:rgba(33, 150, 243, 0.1); padding:5px 12px; border-radius:6px; color:var(--accent); font-size:.8rem; border: 1px solid var(--accent);}
+
 .actions{
   display:flex;
   justify-content:space-around;
-  padding:12px 0;
+  padding:15px 0;
   border-top:1px solid #222;
+  border-bottom:1px solid #222;
 }
-.actions div{
-  text-align:center;
-  font-size:.75rem;
-  cursor:pointer;
-  color: #bbb;
-}
-.actions i{
-  display:block;
-  font-size:1.3rem;
-  margin-bottom:5px;
-  color: #fff;
-}
+.actions div{ text-align:center; font-size:.7rem; cursor:pointer; color: #888; transition: 0.3s;}
+.actions i{ display:block; font-size:1.4rem; margin-bottom:6px; color: #fff; }
 .actions div.active-filter { color: var(--accent); }
 .actions div.active-filter i { color: var(--accent); }
 
 /* LIST */
-.list{
-  flex:1;
-  overflow-y:auto;
-  padding:15px;
-}
+.list{ flex:1; overflow-y:auto; padding:15px; background: #0a0a0a;}
 .row{
   display:flex;
   align-items:center;
@@ -119,25 +104,24 @@ video{width:100%;height:100%}
   background:var(--card);
   padding:12px;
   border-radius:12px;
-  border:1px solid #222;
   margin-bottom:10px;
   cursor:pointer;
+  transition: 0.3s;
+  border: 1px solid transparent;
 }
-.row.active{border-color:var(--accent)}
-.logo{
-  width:45px;
-  height:45px;
-  border-radius:8px;
-  background:#222;
-  object-fit:contain;
+
+/* WATCHING STYLE (Instead of Border) */
+.row.active{
+  background: linear-gradient(90deg, #1a1a1a 0%, #112a3d 100%);
+  box-shadow: inset 0 0 10px rgba(33, 150, 243, 0.2);
+  transform: scale(1.02);
 }
-.name{flex:1}
-.star{
-  font-size:1.2rem;
-  color:#444;
-  transition: .2s;
-}
-.star.active{color:var(--accent)}
+.row.active .name { color: var(--accent); font-weight: bold; }
+
+.logo{ width:50px; height:50px; border-radius:10px; background:#222; object-fit:contain; border: 1px solid #333;}
+.name{ flex:1; font-size: 0.95rem;}
+.star{ font-size:1.3rem; color:#444; transition: .3s; padding: 5px;}
+.star.active{ color:var(--fav); text-shadow: 0 0 10px rgba(255, 75, 43, 0.4);}
 </style>
 </head>
 
@@ -145,31 +129,41 @@ video{width:100%;height:100%}
 
 <div class="header" onclick="showAllChannels()">
   <i class="fas fa-arrow-left" onclick="history.back(); event.stopPropagation();"></i>
-  <span id="pageLabel">Live Stream</span>
+  <span id="pageLabel" style="font-weight: bold; letter-spacing: 1px;">LIVE TV</span>
 </div>
 
 <div class="player-wrap" id="playerArea">
   <video id="video" playsinline></video>
 
   <div class="controls" id="controls">
-    <i class="fas fa-backward" onclick="seek(-10)"></i>
-    <i class="fas fa-play" id="pp" onclick="togglePlay()"></i>
-    <i class="fas fa-forward" onclick="seek(10)"></i>
+    <div class="mid-ctrl">
+        <i class="fas fa-backward" onclick="seek(-10)"></i>
+        <i class="fas fa-play" id="pp" onclick="togglePlay()"></i>
+        <i class="fas fa-forward" onclick="seek(10)"></i>
+    </div>
+    
+    <div class="bottom-ctrl">
+        <div id="timeDisplay">00:00</div>
+        <div style="display:flex; gap:20px;">
+            <i class="fas fa-volume-up" id="volBtn" onclick="toggleMute()"></i>
+            <i class="fas fa-expand" onclick="toggleFull()"></i>
+        </div>
+    </div>
   </div>
 </div>
 
 <div class="fixed">
   <div class="info">
     <div>
-      <h3 id="title">Select Channel</h3>
-      <small>Watching Live stream</small>
+      <h3 id="title" style="font-size: 1.1rem; margin-bottom: 2px;">Select Channel</h3>
+      <small style="color: #666;">Watching Live Stream</small>
     </div>
-    <div class="badge" id="count">Total: 0</div>
+    <div class="badge" id="count">0 Channels</div>
   </div>
 
   <div class="actions">
-    <div onclick="shareChannel()"><i class="fas fa-share-alt"></i>Share</div>
-    <div id="myListTab" onclick="filterFavorites()"><i class="fas fa-star"></i>My List</div>
+    <div onclick="shareChannel()"><i class="fas fa-share-nodes"></i>Share</div>
+    <div id="myListTab" onclick="filterFavorites()"><i class="fas fa-heart"></i>My List</div>
     <div onclick="window.open('https://t.me/yourchannel')"><i class="fab fa-telegram"></i>Telegram</div>
   </div>
 </div>
@@ -180,23 +174,42 @@ video{width:100%;height:100%}
 const video=document.getElementById('video');
 const controls=document.getElementById('controls');
 const pp=document.getElementById('pp');
+const volBtn=document.getElementById('volBtn');
+const timeDisplay=document.getElementById('timeDisplay');
 const listArea = document.getElementById('list');
-let hls=new Hls(),hideT;
-let allChannels = []; // সব চ্যানেল স্টোর করার জন্য
+let hls=new Hls(), hideT;
+let allChannels = [];
 
-/* SHOW CONTROLS */
+/* CONTROLS LOGIC */
 playerArea.onclick=()=>{
   controls.classList.add('show');
   clearTimeout(hideT);
   hideT=setTimeout(()=>controls.classList.remove('show'),3000);
 };
 
-/* PLAYER */
 function togglePlay(){
-  if(video.paused){video.play();pp.className="fas fa-pause";}
-  else{video.pause();pp.className="fas fa-play";}
+  if(video.paused){ video.play(); pp.className="fas fa-pause"; }
+  else{ video.pause(); pp.className="fas fa-play"; }
 }
-function seek(t){video.currentTime+=t}
+
+function seek(t){ video.currentTime+=t; }
+
+function toggleMute(){
+    video.muted = !video.muted;
+    volBtn.className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up";
+}
+
+function toggleFull(){
+    if(video.requestFullscreen) video.requestFullscreen();
+    else if(video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+}
+
+// টাইম আপডেট
+video.ontimeupdate = () => {
+    let m = Math.floor(video.currentTime / 60);
+    let s = Math.floor(video.currentTime % 60);
+    timeDisplay.innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+};
 
 /* FAVORITE LOGIC */
 const KEY="my_fav_channels";
@@ -205,7 +218,6 @@ const saveFav=d=>localStorage.setItem(KEY,JSON.stringify(d));
 
 function toggleFav(channel, iconEl){
   let favs = getFav();
-  // চ্যানেল অবজেক্টের URL দিয়ে চেক করা ভালো কারণ নাম এক হতে পারে
   const index = favs.findIndex(x => x.url === channel.url);
   
   if(index > -1){
@@ -218,10 +230,10 @@ function toggleFav(channel, iconEl){
   saveFav(favs);
 }
 
-/* FILTER LISTS */
+/* UI FILTERS */
 function filterFavorites() {
     const favs = getFav();
-    document.getElementById('pageLabel').innerText = "My List";
+    document.getElementById('pageLabel').innerText = "Favorites";
     document.getElementById('myListTab').classList.add('active-filter');
     render(favs);
 }
@@ -232,17 +244,7 @@ function showAllChannels() {
     render(allChannels);
 }
 
-/* SHARE */
-function shareChannel(){
-  if(navigator.share){
-    navigator.share({title:title.innerText,url:location.href});
-  } else {
-    navigator.clipboard.writeText(location.href);
-    alert("Link copied to clipboard");
-  }
-}
-
-/* LOAD PLAYLIST */
+/* PLAYLIST LOADER */
 const url=new URLSearchParams(location.search).get('playlist');
 if(url){
     fetch(url).then(r=>r.text()).then(data=>{
@@ -254,25 +256,18 @@ if(url){
           const m=l.match(/tvg-logo="([^"]*)"/);
           c.logo=m?m[1]:"https://i.imgur.com/8Qf6Y0L.png";
         }else if(l.trim().startsWith('http')){
-          c.url=l.trim();arr.push({...c});c={};
+          c.url=l.trim(); arr.push({...c}); c={};
         }
       });
-      allChannels = arr; // গ্লোবাল ভেরিয়েবলে সেভ রাখলাম
+      allChannels = arr;
       render(allChannels);
-    }).catch(() => {
-        listArea.innerHTML = "<p style='text-align:center; padding:20px;'>Failed to load playlist.</p>";
     });
 }
 
 function render(arr){
   const favs = getFav();
-  listArea.innerHTML = ""; // আগের লিস্ট ক্লিয়ার করা
-  document.getElementById('count').innerText = "Total: " + arr.length;
-
-  if(arr.length === 0) {
-      listArea.innerHTML = "<p style='text-align:center; color:#555; padding:20px;'>No channels found.</p>";
-      return;
-  }
+  listArea.innerHTML = "";
+  document.getElementById('count').innerText = arr.length + " Channels";
 
   arr.forEach((c,i)=>{
     const isFav = favs.some(x => x.url === c.url);
@@ -281,7 +276,7 @@ function render(arr){
     d.innerHTML=`
       <img class="logo" src="${c.logo}" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
       <div class="name">${c.name}</div>
-      <i class="fas fa-star star ${isFav?'active':''}"></i>
+      <i class="fas fa-heart star ${isFav?'active':''}"></i>
     `;
     
     d.onclick=()=>{
@@ -291,14 +286,12 @@ function render(arr){
     };
 
     d.querySelector('.star').onclick=e=>{
-      e.stopPropagation(); // রো এর ক্লিক ইভেন্ট বন্ধ করার জন্য
+      e.stopPropagation();
       toggleFav(c, e.target);
     };
     
     listArea.appendChild(d);
-    
-    // শুধু প্রথম লোডের সময় প্রথম চ্যানেল প্লে হবে
-    if(i===0 && document.getElementById('pageLabel').innerText === "Live Stream" && !video.src) d.click();
+    if(i===0 && !video.src) d.click();
   });
 }
 
@@ -314,6 +307,10 @@ function play(url,name){
       video.play();
   }
   pp.className="fas fa-pause";
+}
+
+function shareChannel(){
+  if(navigator.share) navigator.share({title:title.innerText, url:location.href});
 }
 </script>
 
