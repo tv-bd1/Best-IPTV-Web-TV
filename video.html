@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro IPTV Player</title>
+<title>Pro IPTV Player - Final Update</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
@@ -43,9 +43,8 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 1; }
 .info { padding: 15px; display: flex; justify-content: space-between; align-items: center; }
 .channel-meta { display: flex; align-items: center; gap: 12px; }
 .mini-logo { 
-    width: 50px; height: 50px; border-radius: 50%; /* পুরোপুরি গোলাকার */
-    border: 2px solid var(--accent); object-fit: cover; background: #111; 
-    padding: 2px; /* লোগোর চারপাশে বর্ডার থেকে একটু গ্যাপ */
+    width: 55px; height: 55px; border-radius: 50%; 
+    border: 2px solid var(--accent); object-fit: cover; background: #111; padding: 2px;
 }
 .badge { background: #111; padding: 5px 12px; border-radius: 20px; color: var(--accent); font-size: 0.7rem; border: 1px solid #333; }
 
@@ -53,7 +52,6 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 1; }
 .actions { display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #222; border-bottom: 1px solid #222; background: #050505; }
 .actions div { text-align: center; font-size: 0.7rem; cursor: pointer; flex: 1; color: #bbb; }
 .actions i { display: block; font-size: 1.4rem; margin-bottom: 5px; color: #fff; }
-.active-tab { color: var(--accent) !important; }
 
 /* LIST AREA */
 .list { flex: 1; overflow-y: auto; padding: 10px 15px; }
@@ -79,7 +77,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 1; }
   </div>
 </div>
 
-<div class="player-wrap" id="playerArea" onclick="handleControlVisibility()">
+<div class="player-wrap" id="playerArea" onclick="toggleControls()">
   <div class="loader" id="loader"></div>
   <canvas id="visualizer"></canvas>
   <video id="video" playsinline crossorigin="anonymous"></video>
@@ -124,59 +122,68 @@ const playerArea=document.getElementById('playerArea'), controls=document.getEle
 
 let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, audioCtx, analyser, source, dataArray;
 
-// ১. স্মার্ট কন্ট্রোল হ্যান্ডলার (৩ সেকেন্ড পর অটো হাইড)
-function handleControlVisibility() {
+// ১. স্মার্ট কন্ট্রোল হ্যান্ডলার (৩ সেকেন্ড পর অটো হাইড / টাচ করলে হাইড)
+function toggleControls() {
     if (controls.classList.contains('show')) {
-        controls.classList.remove('show'); // টাচ করলে সাথে সাথে হাইড হবে
+        controls.classList.remove('show');
         clearTimeout(hideTimeout);
     } else {
-        controls.classList.add('show'); // হাইড থাকলে শো হবে
-        clearTimeout(hideTimeout);
-        hideTimeout = setTimeout(() => {
-            controls.classList.remove('show');
-        }, 3000); // ৩ সেকেন্ড পর অটো হাইড
+        controls.classList.add('show');
+        startHideTimer();
     }
 }
 
-// ২. সার্চ ফিল্টার
-function filterChannels() {
-    const query = document.getElementById('searchInput').value.toLowerCase();
-    const sourceData = isFavView ? getFavs() : allChannels;
-    const filtered = sourceData.filter(ch => ch.name.toLowerCase().includes(query));
-    render(filtered);
+function startHideTimer() {
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+        controls.classList.remove('show');
+    }, 3000); 
 }
 
-// ৩. প্লে সিস্টেম
+// ২. প্লে সিস্টেম (উন্নত HLS কনফিগারেশনসহ)
 function play(url, name, logo) {
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
     loader.style.display = "block";
     
-    if(!url.includes('.m3u8')) {
+    let cleanUrl = url.trim();
+
+    if (Hls.isSupported() && cleanUrl.includes('.m3u8')) {
+        hls.destroy(); 
+        hls = new Hls({
+            enableWorker: true,
+            lowLatencyMode: true,
+            xhrSetup: function(xhr) { xhr.withCredentials = false; }
+        });
+        hls.loadSource(cleanUrl);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play();
+            startHideTimer();
+        });
+        hls.on(Hls.Events.ERROR, (event, data) => {
+            if (data.fatal) {
+                console.error("HLS Error:", data.type);
+                loader.style.display = "none";
+                if(data.type === Hls.ErrorTypes.NETWORK_ERROR) showToast("Link Error/Expired!");
+            }
+        });
+    } else {
+        video.src = cleanUrl;
+        video.play().catch(() => loader.style.display="none");
+    }
+    
+    // রেডিও বা অডিও হলে ভিজ্যুয়ালাইজার চালু
+    if(!cleanUrl.includes('.m3u8')) {
         canvas.style.display = "block";
         initVisualizer();
     } else {
         canvas.style.display = "none";
     }
-
-    hls.detachMedia();
-    video.pause();
-    video.src = url.replace(/ /g, "%20");
-    
-    if(url.includes('.m3u8') && Hls.isSupported()){
-        hls.destroy(); hls = new Hls();
-        hls.loadSource(video.src); hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-            video.play();
-            handleControlVisibility(); // প্লে হওয়ার পর কন্ট্রোল শো করবে
-        });
-    } else {
-        video.play().then(() => handleControlVisibility()).catch(() => loader.style.display="none");
-    }
     pp.className = "fas fa-pause";
 }
 
-// ৪. সাউন্ড ইফেক্ট (Visualizer)
+// ৩. ভিজ্যুয়ালাইজার (অডিও ইফেক্ট)
 function initVisualizer() {
     if (audioCtx) return;
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -202,7 +209,13 @@ function drawVisual() {
     });
 }
 
-// ৫. ডাটা ও ফেভারিট
+// ৪. সার্চ এবং ডাটা রেন্ডারিং
+function filterChannels() {
+    const query = document.getElementById('searchInput').value.toLowerCase();
+    const sourceData = isFavView ? getFavs() : allChannels;
+    render(sourceData.filter(ch => ch.name.toLowerCase().includes(query)));
+}
+
 const getFavs = () => JSON.parse(localStorage.getItem('fav_ch_final') || "[]");
 
 function render(arr) {
@@ -212,7 +225,7 @@ function render(arr) {
     arr.forEach((ch) => {
         const isFav = favs.some(f => f.url === ch.url);
         const d = document.createElement('div');
-        d.className = `row ${video.src.includes(ch.url.replace(/ /g, "%20")) ? 'active' : ''}`;
+        d.className = `row ${video.src.includes(ch.url) ? 'active' : ''}`;
         d.innerHTML = `
             <div class="logo-circle"><img src="${ch.logo || 'https://i.imgur.com/8Qf6Y0L.png'}" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"></div>
             <div class="name">${ch.name}</div>
@@ -232,26 +245,28 @@ function render(arr) {
     });
 }
 
+// ৫. অন্যান্য ফাংশন
 function toggleFavoriteView() {
     isFavView = !isFavView;
     document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
     render(isFavView ? getFavs() : allChannels);
 }
 
-// ৬. ইউটিলিটি ফাংশনস
 function togglePlay() { video.paused ? video.play() : video.pause(); pp.className = video.paused ? "fas fa-play" : "fas fa-pause"; }
 function seek(s) { video.currentTime += s; }
 function toggleMute() { video.muted = !video.muted; document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up"; }
 function toggleFull() { if(!document.fullscreenElement) playerArea.requestFullscreen(); else document.exitFullscreen(); }
 function handleBack() { window.history.back(); }
 function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
-function shareApp() { if(navigator.share) navigator.share({title:'IPTV', url:window.location.href}); else showToast("Link Copied!"); }
+function shareApp() { if(navigator.share) navigator.share({title:'IPTV Player', url:window.location.href}); else showToast("Link Copied!"); }
 
 video.ontimeupdate = () => {
     let m = Math.floor(video.currentTime / 60);
     let s = Math.floor(video.currentTime % 60);
     document.getElementById('vTime').innerText = `${m}:${s < 10 ? '0'+s : s}`;
 };
+
+video.onplaying = () => { loader.style.display = "none"; if(audioCtx) audioCtx.resume(); };
 
 // প্লেলিস্ট লোড
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
@@ -272,7 +287,6 @@ if(playlistUrl) {
     });
 }
 
-video.onplaying = () => { loader.style.display = "none"; if(audioCtx) audioCtx.resume(); };
 canvas.width = 400; canvas.height = 100;
 </script>
 </body>
