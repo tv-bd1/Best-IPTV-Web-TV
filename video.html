@@ -8,25 +8,25 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
-:root { --bg: #000; --card: #121212; --accent: #00E5FF; --fav: #ff4b2b; --text: #fff; }
+:root { --bg: #000; --card: #121212; --accent: #00E5FF; --fav: #FFD700; --text: #fff; }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
 body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
 /* PLAYER AREA */
 .player-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
-video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
+video { width: 100%; height: 100%; object-fit: contain; z-index: 2; background: #000; }
 
-#visualizer { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; height: 120px; z-index: 1; display: none; pointer-events: none; filter: drop-shadow(0 0 15px var(--accent)); }
+/* VISUALIZER */
+#visualizer { position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; z-index: 3; pointer-events: none; opacity: 0.7; }
 
 /* CONTROLS OVERLAY */
-.controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transition: 0.3s ease; z-index: 15; display: flex; flex-direction: column; justify-content: flex-end; }
+.controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transition: 0.3s ease; z-index: 15; display: flex; flex-direction: column; justify-content: flex-end; }
 .controls-overlay.show { opacity: 1; visibility: visible; }
 .bottom-bar { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; justify-content: space-between; }
 .mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
 .mini-btns i, .right-side i { font-size: 1.3rem; cursor: pointer; color: #fff; transition: 0.2s; }
 .mini-btns i:hover, .right-side i:hover { color: var(--accent); }
 
-/* QUALITY MENU */
 .quality-menu { position: absolute; bottom: 60px; right: 15px; background: rgba(20,20,20,0.95); border: 1px solid var(--accent); border-radius: 8px; display: none; flex-direction: column; z-index: 20; min-width: 100px; overflow: hidden; }
 .quality-menu button { background: none; border: none; color: white; padding: 10px; cursor: pointer; font-size: 0.8rem; border-bottom: 1px solid #222; }
 .quality-menu button:hover { background: var(--accent); color: #000; }
@@ -61,8 +61,8 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
 
 <div class="player-wrap" id="playerArea" onclick="handleControlToggle(event)">
   <div class="loader" id="loader"></div>
-  <canvas id="visualizer"></canvas>
   <video id="video" playsinline crossorigin="anonymous"></video>
+  <canvas id="visualizer"></canvas>
   
   <div class="quality-menu" id="qualityMenu"></div>
 
@@ -94,7 +94,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
 
 <div class="actions">
     <div onclick="shareApp()"><i class="fas fa-share-nodes"></i>Share</div>
-    <div id="favBtnTab" onclick="toggleFavoriteView()"><i class="fas fa-heart"></i>My List</div>
+    <div id="favBtnTab" onclick="toggleFavoriteView()"><i class="fas fa-star"></i>My List</div>
     <div onclick="window.open('https://t.me/bestiptvlive', '_blank')"><i class="fab fa-telegram-plane"></i>Telegram</div>
 </div>
 
@@ -106,7 +106,36 @@ const video=document.getElementById('video'), loader=document.getElementById('lo
 const ctx=canvas.getContext('2d'), listArea=document.getElementById('list'), pp=document.getElementById('pp');
 const controls=document.getElementById('controls'), qualityMenu=document.getElementById('qualityMenu');
 
-let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, audioCtx, analyser, dataArray;
+let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout;
+let audioCtx, analyser, source, dataArray, animationId;
+
+// Audio Visualizer Setup
+function initVisualizer() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    source = audioCtx.createMediaElementSource(video);
+    source.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    analyser.fftSize = 256;
+    const bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+    draw();
+}
+
+function draw() {
+    animationId = requestAnimationFrame(draw);
+    analyser.getByteFrequencyData(dataArray);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const barWidth = (canvas.width / dataArray.length) * 2.5;
+    let x = 0;
+    for (let i = 0; i < dataArray.length; i++) {
+        let barHeight = dataArray[i] / 2;
+        ctx.fillStyle = `rgb(0, 229, 255)`; // Accent color
+        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+        x += barWidth + 1;
+    }
+}
 
 const getFavs = () => JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
 
@@ -115,10 +144,10 @@ function toggleFavorite(ch) {
     const index = favs.findIndex(f => f.url === ch.url);
     if(index > -1) {
         favs.splice(index, 1);
-        showToast("Removed from List");
+        showToast("Removed from Starred");
     } else {
         favs.push(ch);
-        showToast("Added to My List");
+        showToast("Added to Starred");
     }
     localStorage.setItem('my_iptv_favs', JSON.stringify(favs));
     render(isFavView ? favs : allChannels);
@@ -131,11 +160,8 @@ function toggleFavoriteView() {
 }
 
 function handleControlToggle(e) {
-    if (controls.classList.contains('show')) {
-        hideControlsNow();
-    } else {
-        showControls();
-    }
+    if (controls.classList.contains('show')) hideControlsNow();
+    else showControls();
 }
 
 function showControls() {
@@ -154,13 +180,15 @@ function toggleQualityMenu() {
 }
 
 function play(url, name, logo) {
+    initVisualizer();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
     loader.style.display = "block";
     qualityMenu.innerHTML = ""; 
     
-    const isM3U8 = url.includes('.m3u8');
-    if(isM3U8 && Hls.isSupported()){
+    if(url.includes('.m3u8') && Hls.isSupported()){
         hls.destroy(); hls = new Hls();
         hls.loadSource(url); hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -197,16 +225,12 @@ function render(arr) {
         const isFav = favs.some(f => f.url === ch.url);
         const d = document.createElement('div');
         d.className = `row ${video.src === ch.url ? 'active' : ''}`;
-        
-        // লোগো হ্যান্ডলিং
-        const channelLogo = ch.logo || "https://i.imgur.com/8Qf6Y0L.png";
-        
         d.innerHTML = `
-            <img src="${channelLogo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
+            <img src="${ch.logo || 'https://i.imgur.com/8Qf6Y0L.png'}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
             <div class="name">${ch.name}</div>
-            <i class="fas fa-heart star-btn ${isFav ? 'is-fav' : ''}"></i>
+            <i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}"></i>
         `;
-        d.onclick = () => { play(ch.url, ch.name, ch.logo); render(isFavView?getFavs():allChannels); };
+        d.onclick = () => play(ch.url, ch.name, ch.logo);
         d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(ch); };
         listArea.appendChild(d);
     });
@@ -253,7 +277,8 @@ if(playlistUrl) {
     });
 }
 
-canvas.width = 800; canvas.height = 150;
+canvas.width = window.innerWidth;
+canvas.height = 100;
 </script>
 </body>
 </html>
