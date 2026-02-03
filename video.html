@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate IPTV PRO</title>
+<title>Ultimate IPTV Player PRO</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
-:root { --bg: #000; --card: #121212; --accent: #00E5FF; --fav: #FFD700; --text: #fff; }
+:root { --bg: #000; --card: #121212; --accent: #00E5FF; --fav: #ff4b2b; --text: #fff; }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
 body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
@@ -16,44 +16,36 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 .player-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
 video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
 
-/* ULTRA SLIM BRIGHT VISUALIZER */
-#visualizer { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; height: 120px; z-index: 1; display: none; pointer-events: none; filter: drop-shadow(0 0 20px var(--accent)); }
+/* SLIM NEON VISUALIZER */
+#visualizer { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; height: 120px; z-index: 1; display: none; pointer-events: none; filter: drop-shadow(0 0 15px var(--accent)); }
 
 /* CONTROLS OVERLAY */
 .controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transition: 0.3s ease; z-index: 15; display: flex; flex-direction: column; justify-content: flex-end; }
 .controls-overlay.show { opacity: 1; visibility: visible; }
-.bottom-bar { padding: 10px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; justify-content: space-between; }
+.bottom-bar { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; justify-content: space-between; }
 .mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
-.mini-btns i, .right-side i { font-size: 1.4rem; cursor: pointer; color: #fff; }
+.mini-btns i, .right-side i { font-size: 1.3rem; cursor: pointer; color: #fff; transition: 0.2s; }
+.mini-btns i:hover { color: var(--accent); }
 
-/* QUALITY MENU */
-#qualityMenu { position: absolute; top: 10px; right: 10px; background: rgba(20,20,20,0.95); border: 1px solid #333; border-radius: 8px; display: none; flex-direction: column; z-index: 30; min-width: 120px; }
-#qualityMenu button { background: none; border: none; color: #fff; padding: 10px; font-size: 0.9rem; cursor: pointer; text-align: center; border-bottom: 1px solid #333; }
-#qualityMenu button:last-child { border-bottom: none; }
-#qualityMenu button:hover { background: var(--accent); color: #000; }
+.loader { position: absolute; width: 45px; height: 45px; border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; display: none; z-index: 10; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* INFO SECTION (Matching your Image) */
-.info { padding: 15px; display: flex; justify-content: space-between; align-items: flex-start; background: #080808; border-bottom: 1px solid #1a1a1a; }
-.channel-meta { display: flex; align-items: center; gap: 15px; }
-.mini-logo { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; background: #111; border: 2px solid #222; }
-.title-block h3 { font-size: 1.1rem; color: #fff; margin-bottom: 2px; }
-.title-block small { color: var(--accent); font-size: 0.75rem; font-weight: bold; letter-spacing: 1px; }
-.badge { background: #0d2233; color: var(--accent); padding: 5px 12px; border-radius: 8px; font-size: 0.8rem; font-weight: bold; }
+/* INFO & ACTIONS */
+.info { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; }
+.channel-meta { display: flex; align-items: center; gap: 12px; }
+.mini-logo { width: 45px; height: 45px; border-radius: 10px; object-fit: contain; background: #111; border: 1px solid #222; }
 
-/* ACTION BUTTONS (Matching Image 1000015913) */
-.actions { display: flex; padding: 20px 0; background: #000; border-bottom: 1px solid #1a1a1a; }
-.actions div { flex: 1; text-align: center; cursor: pointer; }
-.actions i { display: block; font-size: 1.8rem; margin-bottom: 8px; color: #fff; }
-.actions span { font-size: 0.85rem; color: #fff; }
+.actions { display: flex; padding: 12px 0; background: #050505; border-bottom: 1px solid #1a1a1a; }
+.actions div { flex: 1; text-align: center; font-size: 0.75rem; color: #bbb; cursor: pointer; }
+.actions i { display: block; font-size: 1.4rem; margin-bottom: 5px; color: #fff; }
+.active-tab, .active-tab i { color: var(--accent) !important; }
 
-/* CHANNEL LIST (Circle Logos & ⭐) */
-.list { flex: 1; overflow-y: auto; padding: 15px; background: #000; }
-.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 15px; margin-bottom: 12px; border: 1px solid #1a1a1a; cursor: pointer; transition: 0.2s; }
-.row.active { background: #0d2233; border: 1px solid var(--accent); }
-.logo-circle { width: 50px; height: 50px; border-radius: 50%; overflow: hidden; background: #000; flex-shrink: 0; border: 1px solid #333; }
-.logo-circle img { width: 100%; height: 100%; object-fit: cover; }
-.name { flex: 1; font-size: 1rem; font-weight: 500; color: #eee; }
-.star-btn { font-size: 1.5rem; color: #444; padding: 5px; transition: 0.2s; }
+/* LIST AREA */
+.list { flex: 1; overflow-y: auto; padding: 15px; }
+.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; cursor: pointer; }
+.row.active { background: #0d2233; border: 1.5px solid var(--accent); }
+.name { flex: 1; font-size: 0.95rem; font-weight: 500; }
+.star-btn { font-size: 1.3rem; color: #444; padding: 5px; transition: 0.2s; }
 .star-btn.is-fav { color: var(--fav); }
 
 #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 10px 25px; border-radius: 30px; font-size: 0.85rem; display: none; z-index: 1000; font-weight: bold; }
@@ -61,19 +53,19 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
 </head>
 <body>
 
-<div class="player-wrap" id="playerArea" onclick="handleControls()" ondblclick="hideControlsNow()">
+<div class="player-wrap" id="playerArea" onclick="handleControlToggle(event)" ondblclick="hideControlsNow()">
+  <div class="loader" id="loader"></div>
   <canvas id="visualizer"></canvas>
   <video id="video" playsinline crossorigin="anonymous"></video>
   
   <div class="controls-overlay" id="controls">
-    <div id="qualityMenu"></div>
     <div class="bottom-bar">
         <div class="mini-btns">
             <i class="fas fa-play" id="pp" onclick="event.stopPropagation(); togglePlay()"></i>
-            <i class="fas fa-rotate-right" onclick="event.stopPropagation(); location.reload()"></i>
+            <i class="fas fa-redo" onclick="event.stopPropagation(); location.reload()"></i>
         </div>
         <div class="right-side">
-            <i class="fas fa-gear" onclick="event.stopPropagation(); toggleQualityMenu()"></i>
+            <i class="fas fa-volume-up" id="vBtn" onclick="event.stopPropagation(); toggleMute()"></i>
             <i class="fas fa-expand" onclick="event.stopPropagation(); toggleFull()"></i>
         </div>
     </div>
@@ -83,39 +75,44 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
 <div class="info">
     <div class="channel-meta">
       <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
-      <div class="title-block">
-        <h3 id="title">Select Channel</h3>
-        <small>LIVE STREAMING</small>
+      <div>
+        <h3 id="title" style="font-size: 1rem;">Select Channel</h3>
+        <small style="color:var(--accent); font-size:0.7rem;">LIVE STREAMING</small>
       </div>
     </div>
-    <div class="badge" id="count">0 CH</div>
+    <div class="badge" id="count" style="background:#0d2233; padding:5px; border-radius:5px; font-size:12px; color:var(--accent)">0 CH</div>
 </div>
 
 <div class="actions">
-    <div onclick="shareApp()"><i class="fas fa-share-nodes"></i><span>Share</span></div>
-    <div id="favBtnTab" onclick="toggleFavoriteView()"><i class="far fa-star"></i><span>My List</span></div>
-    <div onclick="window.open('https://t.me/yourtelegram', '_blank')"><i class="fab fa-telegram-plane"></i><span>Telegram</span></div>
+    <div onclick="shareApp()"><i class="fas fa-share-nodes"></i>Share</div>
+    <div id="favBtnTab" onclick="toggleFavoriteView()"><i class="fas fa-heart"></i>My List</div>
+    <div onclick="window.open('https://t.me/bestiptvlive', '_blank')"><i class="fab fa-telegram-plane"></i>Telegram</div>
 </div>
 
 <div class="list" id="list"></div>
 <div id="toast"></div>
 
 <script>
-const video=document.getElementById('video'), canvas=document.getElementById('visualizer');
+const video=document.getElementById('video'), loader=document.getElementById('loader'), canvas=document.getElementById('visualizer');
 const ctx=canvas.getContext('2d'), listArea=document.getElementById('list'), pp=document.getElementById('pp');
-const controls=document.getElementById('controls'), qMenu=document.getElementById('qualityMenu');
+const controls=document.getElementById('controls');
 
 let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, audioCtx, analyser, dataArray;
 
-// ১. ফেভারিট সিস্টেম (⭐ আইকন)
-const getFavs = () => JSON.parse(localStorage.getItem('iptv_star_list') || "[]");
+// ১. ফেভারিট লজিক (Fix)
+const getFavs = () => JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
 
 function toggleFavorite(ch) {
     let favs = getFavs();
-    const idx = favs.findIndex(f => f.url === ch.url);
-    if(idx > -1) { favs.splice(idx, 1); showToast("Removed from List"); }
-    else { favs.push(ch); showToast("Added to My List"); }
-    localStorage.setItem('iptv_star_list', JSON.stringify(favs));
+    const index = favs.findIndex(f => f.url === ch.url);
+    if(index > -1) {
+        favs.splice(index, 1);
+        showToast("Removed from List");
+    } else {
+        favs.push(ch);
+        showToast("Added to My List");
+    }
+    localStorage.setItem('my_iptv_favs', JSON.stringify(favs));
     render(isFavView ? favs : allChannels);
 }
 
@@ -125,41 +122,39 @@ function toggleFavoriteView() {
     render(isFavView ? getFavs() : allChannels);
 }
 
-// ২. ভিডিও কোয়ালিটি সেটিংস (HLS Quality)
-function setupQualityMenu() {
-    qMenu.innerHTML = '<button onclick="setQuality(-1)">Auto Quality</button>';
-    hls.levels.forEach((level, index) => {
-        const btn = document.createElement('button');
-        btn.innerText = level.height + 'p';
-        btn.onclick = () => setQuality(index);
-        qMenu.appendChild(btn);
-    });
-}
-function setQuality(idx) { hls.currentLevel = idx; qMenu.style.display = 'none'; showToast("Quality Changed"); }
-function toggleQualityMenu() { qMenu.style.display = qMenu.style.display === 'flex' ? 'none' : 'flex'; }
-
-// ৩. কন্ট্রোল ও অটো হাইড
-function handleControls() {
-    if (controls.classList.contains('show')) { hideControlsNow(); }
-    else {
-        controls.classList.add('show');
-        clearTimeout(hideTimeout);
-        hideTimeout = setTimeout(hideControlsNow, 3000);
+// ২. অটো-হাইড ও ডাবল ক্লিক হাইড
+function handleControlToggle(e) {
+    if (controls.classList.contains('show')) {
+        hideControlsNow();
+    } else {
+        showControls();
     }
 }
-function hideControlsNow() { controls.classList.remove('show'); qMenu.style.display = 'none'; }
 
-// ৪. চিকন উজ্জ্বল ভিজুয়ালাইজার
+function showControls() {
+    controls.classList.add('show');
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(hideControlsNow, 3000); // ৩ সেকেন্ড পর অটো হাইড
+}
+
+function hideControlsNow() {
+    controls.classList.remove('show');
+}
+
+// ৩. ভিজ্যুয়ালাইজার (Slim & Bright)
 function initVisualizer() {
     if (audioCtx) return;
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    analyser = audioCtx.createAnalyser();
-    const src = audioCtx.createMediaElementSource(video);
-    src.connect(analyser); analyser.connect(audioCtx.destination);
-    analyser.fftSize = 256;
-    dataArray = new Uint8Array(analyser.frequencyBinCount);
-    draw();
+    try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioCtx.createAnalyser();
+        const source = audioCtx.createMediaElementSource(video);
+        source.connect(analyser); analyser.connect(audioCtx.destination);
+        analyser.fftSize = 256;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        draw();
+    } catch(e) {}
 }
+
 function draw() {
     requestAnimationFrame(draw);
     if (canvas.style.display === "none") return;
@@ -170,15 +165,16 @@ function draw() {
     dataArray.forEach(val => {
         let h = (val / 255) * canvas.height;
         ctx.fillStyle = "#00E5FF";
-        ctx.fillRect(x, canvas.height - h, 1.5, h);
+        ctx.fillRect(x, canvas.height - h, 1.5, h); // চিকন বার
         x += barWidth;
     });
 }
 
-// ৫. প্লে এবং রেন্ডার
+// ৪. প্লে সিস্টেম
 function play(url, name, logo) {
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
+    loader.style.display = "block";
     const isM3U8 = url.includes('.m3u8');
     canvas.style.display = isM3U8 ? "none" : "block";
     if(!isM3U8) initVisualizer();
@@ -187,8 +183,10 @@ function play(url, name, logo) {
     if(isM3U8 && Hls.isSupported()){
         hls.destroy(); hls = new Hls();
         hls.loadSource(url); hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => { setupQualityMenu(); video.play(); });
-    } else { video.play(); }
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    } else {
+        video.play().catch(()=> loader.style.display="none");
+    }
     pp.className = "fas fa-pause";
 }
 
@@ -201,23 +199,56 @@ function render(arr) {
         const d = document.createElement('div');
         d.className = `row ${video.src === ch.url ? 'active' : ''}`;
         d.innerHTML = `
-            <div class="logo-circle"><img src="${ch.logo || 'https://i.imgur.com/8Qf6Y0L.png'}" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"></div>
             <div class="name">${ch.name}</div>
-            <i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}"></i>
+            <i class="fas fa-heart star-btn ${isFav ? 'is-fav' : ''}"></i>
         `;
-        d.onclick = () => play(ch.url, ch.name, ch.logo);
+        d.onclick = () => { play(ch.url, ch.name, ch.logo); render(isFavView?getFavs():allChannels); };
         d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(ch); };
         listArea.appendChild(d);
     });
 }
 
-function togglePlay() { video.paused ? (video.play(), pp.className="fas fa-pause") : (video.pause(), pp.className="fas fa-play"); }
-function toggleFull() { document.fullscreenElement ? document.exitFullscreen() : document.getElementById('playerArea').requestFullscreen(); }
-function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
+// ৫. কন্ট্রোল বাটন ফাংশন
+function togglePlay() { 
+    if(video.paused) { video.play(); pp.className="fas fa-pause"; } 
+    else { video.pause(); pp.className="fas fa-play"; } 
+}
+function toggleMute() { 
+    video.muted = !video.muted; 
+    document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up"; 
+}
+function toggleFull() {
+    if (!document.fullscreenElement) document.getElementById('playerArea').requestFullscreen();
+    else document.exitFullscreen();
+}
 
-// প্রাথমিক ডাটা (Muslim FM উদাহরণ)
-allChannels = [{name: "Muslim FM", url: "https://example.com/live.m3u8", logo: "https://i.imgur.com/8Qf6Y0L.png"}];
-render(allChannels);
+function shareApp() {
+    const sData = { title: 'Best IPTV', text: 'Watch Live TV!', url: 'https://bestiptv.rf.gd/' };
+    if (navigator.share) navigator.share(sData);
+    else { navigator.clipboard.writeText(sData.url); showToast("Link Copied!"); }
+}
+
+function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
+video.onplaying = () => { loader.style.display="none"; if(audioCtx) audioCtx.resume(); };
+
+// অটো লোড প্লেলিস্ট
+const playlistUrl = new URLSearchParams(location.search).get('playlist');
+if(playlistUrl) {
+    fetch(playlistUrl).then(r=>r.text()).then(data => {
+        let channels=[], c={}, lines=data.split('\n');
+        lines.forEach(l => {
+            if(l.startsWith('#EXTINF')){
+                c.name = l.split(',')[1].trim();
+                const m = l.match(/tvg-logo="([^"]*)"/);
+                c.logo = m ? m[1] : "";
+            } else if(l.startsWith('http')) {
+                c.url = l.trim(); channels.push({...c}); c={};
+            }
+        });
+        allChannels = channels; render(allChannels);
+        if(allChannels.length > 0) play(allChannels[0].url, allChannels[0].name, allChannels[0].logo);
+    });
+}
 
 canvas.width = 800; canvas.height = 150;
 </script>
