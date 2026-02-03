@@ -10,7 +10,16 @@
 <style>
 :root { --bg: #000; --card: #121212; --accent: #00E5FF; --fav: #FFD700; --text: #fff; }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+/* পুরো বডি ফ্লেক্সবক্স হিসেবে থাকবে যাতে লিস্ট পুরো জায়গা পায় */
+body { 
+    background: var(--bg); 
+    color: var(--text); 
+    height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    overflow: hidden; 
+}
 
 /* PLAYER AREA */
 .player-wrap { 
@@ -22,11 +31,12 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
     justify-content: center; 
     overflow: hidden; 
     aspect-ratio: 16/9;
+    flex-shrink: 0; /* প্লেয়ার যাতে ছোট না হয়ে যায় */
 }
 video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
 #visualizer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; background: #000; display: none; }
 
-/* CONTROLS & QUALITY MENU */
+/* CONTROLS */
 .controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transition: 0.3s ease; z-index: 15; display: flex; flex-direction: column; justify-content: flex-end; }
 .controls-overlay.show { opacity: 1; visibility: visible; }
 .bottom-bar { padding: 10px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; justify-content: space-between; }
@@ -39,26 +49,29 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
     border-radius: 8px; display: none; flex-direction: column; 
     z-index: 20; min-width: 100px; overflow: hidden; 
 }
-.quality-menu button { 
-    background: none; border: none; color: white; padding: 10px; 
-    cursor: pointer; font-size: 0.8rem; border-bottom: 1px solid #222; 
-}
-.quality-menu button:hover { background: var(--accent); color: #000; }
+.quality-menu button { background: none; border: none; color: white; padding: 10px; cursor: pointer; font-size: 0.8rem; border-bottom: 1px solid #222; }
 
 .loader { position: absolute; width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; display: none; z-index: 10; }
 @keyframes spin { 100% { transform: rotate(360deg); } }
 
-/* INFO & LIST */
-.info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; }
+/* INFO & ACTIONS */
+.info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
 .channel-meta { display: flex; align-items: center; gap: 10px; }
 .mini-logo { width: 42px; height: 42px; border-radius: 8px; object-fit: contain; background: #111; border: 1px solid #222; }
 
-.actions { display: flex; padding: 10px 0; background: #050505; border-bottom: 1px solid #1a1a1a; }
+.actions { display: flex; padding: 10px 0; background: #050505; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
 .actions div { flex: 1; text-align: center; font-size: 0.75rem; color: #bbb; cursor: pointer; }
 .actions i { display: block; font-size: 1.3rem; margin-bottom: 5px; color: #fff; }
 .active-tab, .active-tab i { color: var(--accent) !important; }
 
-.list { flex: 1; overflow-y: auto; padding: 12px; }
+/* CHANNEL LIST - এখানে পরিবর্তন করা হয়েছে */
+.list { 
+    flex: 1; /* এটি বাকি সবটুকু জায়গা দখল করবে */
+    overflow-y: auto; /* কন্টেন্ট বেশি হলে স্ক্রল হবে */
+    padding: 12px;
+    background: var(--bg);
+}
+
 .row { display: flex; align-items: center; gap: 12px; background: var(--card); padding: 10px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; cursor: pointer; }
 .row.active { border-color: var(--accent); background: #0d2233; }
 .list-logo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
@@ -113,6 +126,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
 <div id="toast"></div>
 
 <script>
+// ... (আপনার আগের সব জাভাস্ক্রিপ্ট এখানে থাকবে)
 const video=document.getElementById('video'), loader=document.getElementById('loader'), canvas=document.getElementById('visualizer');
 const ctx=canvas.getContext('2d'), listArea=document.getElementById('list'), pp=document.getElementById('pp'), controls=document.getElementById('controls'), qualityMenu=document.getElementById('qualityMenu');
 
@@ -260,147 +274,6 @@ if(playlistUrl) {
 function res() { canvas.width = playerArea.clientWidth; canvas.height = playerArea.clientHeight; }
 window.onresize = res; res();
 </script>
-</body>
-</html>
-</div>
 
-<div class="list" id="list"></div>
-<div id="toast"></div>
-
-<script>
-const video=document.getElementById('video'), loader=document.getElementById('loader'), canvas=document.getElementById('visualizer');
-const ctx=canvas.getContext('2d'), listArea=document.getElementById('list'), pp=document.getElementById('pp'), controls=document.getElementById('controls');
-
-let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout;
-let audioCtx, analyser, source, dataArray;
-
-function initVisualizer() {
-    if (audioCtx) return;
-    try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioCtx.createAnalyser();
-        source = audioCtx.createMediaElementSource(video);
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-        analyser.fftSize = 64;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        draw();
-    } catch(e) { console.error("Visualizer Error"); }
-}
-
-function draw() {
-    requestAnimationFrame(draw);
-    if(!analyser) return;
-    analyser.getByteFrequencyData(dataArray);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let barWidth = (canvas.width / dataArray.length) * 2;
-    let x = 0;
-    for(let i=0; i<dataArray.length; i++) {
-        let barHeight = (dataArray[i]/255) * canvas.height;
-        ctx.fillStyle = "rgba(0, 229, 255, 0.8)";
-        ctx.fillRect(x, canvas.height - barHeight, barWidth - 4, barHeight);
-        x += barWidth;
-    }
-}
-
-video.onloadedmetadata = () => {
-    if (video.videoHeight === 0) { 
-        canvas.style.display = "block"; 
-        canvas.style.zIndex = "3"; 
-    } else { 
-        canvas.style.display = "none"; 
-        canvas.style.zIndex = "1"; 
-    }
-};
-
-const getFavs = () => JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
-
-function toggleFavorite(ch) {
-    let favs = getFavs();
-    const idx = favs.findIndex(f => f.url === ch.url);
-    if(idx > -1) favs.splice(idx, 1);
-    else favs.push(ch);
-    localStorage.setItem('my_iptv_favs', JSON.stringify(favs));
-    render(isFavView ? favs : allChannels);
-}
-
-function toggleFavoriteView() {
-    isFavView = !isFavView;
-    document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
-    render(isFavView ? getFavs() : allChannels);
-}
-
-function play(url, name, logo) {
-    initVisualizer();
-    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-    document.getElementById('title').innerText = name;
-    document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
-    loader.style.display = "block";
-    
-    if(url.includes('.m3u8') && Hls.isSupported()){
-        hls.destroy(); hls = new Hls();
-        hls.loadSource(url); hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    } else {
-        video.src = url;
-        video.play().catch(()=> loader.style.display="none");
-    }
-    pp.className = "fas fa-pause";
-}
-
-function render(arr) {
-    listArea.innerHTML = "";
-    document.getElementById('count').innerText = arr.length + " CH";
-    const favs = getFavs();
-    arr.forEach(ch => {
-        const isFav = favs.some(f => f.url === ch.url);
-        const d = document.createElement('div');
-        d.className = `row ${video.src === ch.url ? 'active' : ''}`;
-        d.innerHTML = `
-            <img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
-            <div class="name">${ch.name}</div>
-            <i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}"></i>
-        `;
-        d.onclick = () => play(ch.url, ch.name, ch.logo);
-        d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(ch); };
-        listArea.appendChild(d);
-    });
-}
-
-function handleControlToggle() { 
-    controls.classList.toggle('show');
-    clearTimeout(hideTimeout);
-    if(controls.classList.contains('show')) hideTimeout = setTimeout(() => controls.classList.remove('show'), 4000);
-}
-
-function togglePlay() { video.paused ? (video.play(), pp.className="fas fa-pause") : (video.pause(), pp.className="fas fa-play"); }
-function toggleMute() { video.muted = !video.muted; document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up"; }
-function toggleFull() { document.fullscreenElement ? document.exitFullscreen() : document.getElementById('playerArea').requestFullscreen(); }
-function shareApp() { if (navigator.share) navigator.share({title:'IPTV', url: window.location.href}); }
-
-video.onplaying = () => { loader.style.display="none"; };
-
-const playlistUrl = new URLSearchParams(location.search).get('playlist');
-if(playlistUrl) {
-    fetch(playlistUrl).then(r=>r.text()).then(data => {
-        let channels=[], c={}, lines=data.split('\n');
-        lines.forEach(l => {
-            if(l.startsWith('#EXTINF')){
-                c.name = l.split(',')[1]?.trim() || "Unknown";
-                const m = l.match(/tvg-logo="([^"]*)"/);
-                c.logo = m ? m[1] : "https://i.imgur.com/8Qf6Y0L.png";
-            } else if(l.startsWith('http')) {
-                c.url = l.trim(); channels.push({...c}); c={};
-            }
-        });
-        allChannels = channels; render(allChannels);
-        if(allChannels.length > 0) play(allChannels[0].url, allChannels[0].name, allChannels[0].logo);
-    });
-}
-
-// Canvas Resize
-function res() { canvas.width = playerArea.clientWidth; canvas.height = playerArea.clientHeight; }
-window.onresize = res; res();
-</script>
 </body>
 </html>
