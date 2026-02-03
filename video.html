@@ -12,12 +12,17 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
 body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-/* HEADER - Time, Date, Day */
+/* HEADER - One Line Time & Date */
 .header { height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; border-bottom: 1px solid #222; background: #080808; }
-.back-btn { font-size: 1.4rem; cursor: pointer; color: #fff; }
+.back-btn { font-size: 1.4rem; cursor: pointer; color: #fff; padding: 10px; margin-left: -10px; }
 .header-info { text-align: right; }
-#h-time { font-size: 1rem; font-weight: bold; color: var(--accent); display: block; }
-#h-date { font-size: 0.65rem; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+#h-full-date { 
+    font-size: 0.85rem; 
+    color: #bbb; 
+    letter-spacing: 0.5px; 
+    font-weight: 500;
+}
+#h-full-date span { color: var(--accent); margin-right: 5px; } /* টাইম অংশটি একটু হাইলাইট করার জন্য */
 
 /* PLAYER & VISUALIZER */
 .player-wrap { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
@@ -67,8 +72,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 1; position: re
 <div class="header">
   <div class="back-btn" onclick="handleBack()"><i class="fas fa-arrow-left"></i></div>
   <div class="header-info">
-    <span id="h-time">00:00:00</span>
-    <span id="h-date">Loading...</span>
+    <div id="h-full-date">Loading...</div>
   </div>
 </div>
 
@@ -120,14 +124,17 @@ const playerArea=document.getElementById('playerArea'), controls=document.getEle
 
 let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, audioCtx, analyser, source, dataArray;
 
-// ১. টাইম, ডেট ও বার আপডেট
+// ১. টাইম, ডেট ও বার আপডেট (সব এক লাইনে)
 function updateHeader() {
     const now = new Date();
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
-    document.getElementById('h-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
-    document.getElementById('h-date').innerText = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+    const timeStr = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const dateStr = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]}`;
+    
+    // টাইমকে <span> এর ভেতর রাখা হয়েছে যাতে চাইলে আলাদা কালার দেওয়া যায়
+    document.getElementById('h-full-date').innerHTML = `<span>${timeStr}</span> | ${dateStr}`;
 }
 setInterval(updateHeader, 1000);
 updateHeader();
@@ -139,7 +146,20 @@ function showControls() {
     hideTimeout = setTimeout(() => controls.classList.remove('show'), 5000);
 }
 
-// ৩. শেয়ার ফাংশন
+// ৩. ব্যাক বাটন হ্যান্ডলার (স্মার্ট লজিক)
+function handleBack() {
+    if (isFavView) {
+        toggleFavoriteView();
+    } else {
+        if (window.history.length > 1) {
+            window.history.back();
+        } else {
+            showToast("No previous page");
+        }
+    }
+}
+
+// ৪. শেয়ার ফাংশন
 function shareApp() {
     if (navigator.share) {
         navigator.share({ title: 'Best IPTV PRO', text: 'Watch Live TV & Radio!', url: window.location.href });
@@ -148,7 +168,7 @@ function shareApp() {
     }
 }
 
-// ৪. প্লে সিস্টেম ও ভিজ্যুয়ালাইজার
+// ৫. প্লে সিস্টেম ও ভিজ্যুয়ালাইজার
 function play(url, name, logo) {
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
@@ -200,7 +220,7 @@ function drawVisual() {
     });
 }
 
-// ৫. ফেভারিট ও রেন্ডার
+// ৬. ফেভারিট ও রেন্ডার
 const getFavs = () => JSON.parse(localStorage.getItem('fav_ch_final') || "[]");
 
 function render(arr) {
@@ -237,22 +257,20 @@ function toggleFavoriteView() {
     render(isFavView ? getFavs() : allChannels);
 }
 
-// ৬. কন্ট্রোল বাটন লজিক
+// ৭. কন্ট্রোল বাটন লজিক
 function togglePlay() { video.paused ? video.play() : video.pause(); pp.className = video.paused ? "fas fa-play" : "fas fa-pause"; }
 function seek(s) { video.currentTime += s; }
 function toggleMute() { video.muted = !video.muted; document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up"; }
 function toggleFull() { if(!document.fullscreenElement) playerArea.requestFullscreen(); else document.exitFullscreen(); }
-function handleBack() { isFavView ? toggleFavoriteView() : window.history.back(); }
 function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2500); }
 
-// টাইম আপডেট (০:০০ ফরম্যাট)
 video.ontimeupdate = () => {
     let m = Math.floor(video.currentTime / 60);
     let s = Math.floor(video.currentTime % 60);
     document.getElementById('vTime').innerText = `${m}:${s < 10 ? '0'+s : s}`;
 };
 
-// প্লেলিস্ট ফেচ
+// ৮. প্লেলিস্ট ফেচ
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
 if(playlistUrl) {
     fetch(playlistUrl.replace(/ /g, "%20")).then(r=>r.text()).then(data => {
