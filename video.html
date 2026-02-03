@@ -1,358 +1,155 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Best IPTV PRO Player</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Player - Best IPTV</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        :root { --accent: #2196F3; }
+        body { margin: 0; background: #000; color: #fff; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        #player-container { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; display: flex; align-items: center; justify-content: center;}
+        video { width: 100%; height: 100%; background: #000; }
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+        /* সুন্দর লোডার */
+        #loader {
+            position: absolute; width: 50px; height: 50px; 
+            border: 5px solid #333; border-top: 5px solid var(--accent);
+            border-radius: 50%; animation: spin 1s linear infinite; z-index: 10;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-<style>
-:root{
-  --bg:#000;
-  --card:#121212;
-  --accent:#2196F3;
-  --fav:#ff4b2b;
-  --text:#fff;
-}
-
-*{margin:0;padding:0;box-sizing:border-box;font-family: Arial, sans-serif}
-body{ background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; overflow:hidden; }
-
-/* HEADER */
-.header{ height:50px; display:flex; align-items:center; justify-content: space-between; padding:0 15px; border-bottom:1px solid #222; }
-.back-btn { font-size: 1.5rem; cursor: pointer; color: #fff; }
-.digital-clock { font-size: 0.75rem; color: #bbb; opacity: 1; transition: 0.3s; }
-
-/* PLAYER AREA */
-.player-wrap{ position:relative; width:100%; aspect-ratio:16/9; background:#000; overflow: hidden; cursor: pointer;}
-video{ width:100%; height:100%; object-fit: contain; pointer-events: none;}
-
-.loader {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 30px; height: 30px; border: 3px solid #333; border-top: 3px solid var(--accent);
-    border-radius: 50%; animation: spin 1s linear infinite; display: none; z-index: 5;
-}
-@keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
-
-/* CONTROLS */
-.controls-overlay {
-    position: absolute; inset: 0; background: rgba(0,0,0,0.3);
-    opacity: 0; visibility: hidden; transition: 0.3s; z-index: 10;
-}
-.controls-overlay.show { opacity: 1; visibility: visible; }
-
-.bottom-bar {
-    position: absolute; bottom: 0; width: 100%; padding: 10px 12px;
-    background: linear-gradient(transparent, rgba(0,0,0,0.9));
-    display: flex; align-items: center; justify-content: space-between;
-}
-
-.mini-btns { display: flex; align-items: center; gap: 18px; }
-.mini-btns i { font-size: 1.1rem; color: #fff; cursor: pointer; }
-#pp { font-size: 1.3rem; width: 20px; text-align: center; }
-
-.right-side { display: flex; align-items: center; gap: 12px; }
-#vTime { font-size: 0.7rem; color: #ddd; min-width: 35px; }
-.right-side i { font-size: 1rem; color: #fff; cursor: pointer; }
-
-/* QUALITY MENU */
-.q-menu {
-    position: absolute; bottom: 45px; right: 10px;
-    background: rgba(18,18,18,0.95); border: 1px solid #333;
-    border-radius: 8px; display: none; flex-direction: column;
-    z-index: 20; min-width: 100px;
-}
-.q-menu.active { display: flex; }
-.q-menu button {
-    background: none; border: none; color: #fff; padding: 10px;
-    font-size: 0.75rem; text-align: left; cursor: pointer; border-bottom: 1px solid #222;
-}
-.q-menu button.active { color: var(--accent); font-weight: bold; }
-
-/* INFO SECTION */
-.info{ padding:12px 15px; display:flex; justify-content:space-between; align-items: center; }
-.channel-meta { display: flex; align-items: center; gap: 10px; }
-.mini-logo { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #333; object-fit: contain; background: #111;}
-.info h3 { font-size: 1rem; margin-bottom: 2px; }
-.badge{ background:#111; padding:4px 12px; border-radius:15px; color:var(--accent); font-size:.7rem; border: 1px solid #222; }
-
-/* ACTIONS */
-.actions{ display:flex; justify-content:space-around; padding:12px 0; border-top:1px solid #222; border-bottom:1px solid #222; margin-bottom: 5px;}
-.actions div{ text-align:center; font-size:.75rem; cursor:pointer; flex: 1; color: #fff; }
-.actions i{ display:block; font-size:1.3rem; margin-bottom:5px; }
-.actions div.active-tab { color: var(--accent); }
-
-/* CHANNEL LIST */
-.list{ flex:1; overflow-y:auto; padding:5px 15px; }
-.row{ display:flex; align-items:center; gap:12px; background:var(--card); padding:10px; border-radius:10px; margin-bottom:10px; cursor:pointer; transition: 0.2s;}
-.row.active{ border-left: 4px solid var(--accent); background: #0d2233; }
-.logo-circle{ width:38px; height:38px; border-radius:50%; overflow: hidden; border: 1px solid #333; flex-shrink: 0; background: #000; display: flex; align-items: center; justify-content: center;}
-.logo-circle img{ width:100%; height:100%; object-fit: contain; }
-.name{ flex:1; font-size: 0.9rem; font-weight: 500;}
-.star-btn { font-size: 1.1rem; color: #333; padding: 5px; }
-.star-btn.active { color: var(--fav); }
-
-/* SHARE MODAL CSS */
-.share-modal {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-    display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(5px);
-}
-.share-box { background: var(--card); width: 85%; max-width: 350px; padding: 25px; border-radius: 20px; text-align: center; border: 1px solid #333; }
-.share-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
-.share-item { cursor: pointer; font-size: 0.7rem; color: #ccc; text-decoration: none; }
-.share-item i { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.3rem; margin: 0 auto 8px; }
-.close-share { background: none; border: none; color: var(--accent); font-weight: bold; cursor: pointer; margin-top: 10px; }
-
-/* CUSTOM TOAST (ID HIDER) */
-#toast {
-    position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
-    background: #2196F3; color: white; padding: 10px 20px; border-radius: 50px;
-    font-size: 0.85rem; z-index: 9999; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-</style>
+        .info-bar { padding: 15px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; background: #111;}
+        .ch-name { font-size: 1rem; font-weight: bold; color: var(--accent); }
+        
+        .list-container { flex: 1; overflow-y: auto; padding: 10px; background: #000; }
+        .channel-item { 
+            padding: 12px; background: #121212; margin-bottom: 8px; border-radius: 10px; 
+            cursor: pointer; display: flex; align-items: center; gap: 12px; border: 1px solid #222;
+        }
+        .channel-item.active { border: 1px solid var(--accent); background: #0d1a25; }
+        .channel-item img { width: 40px; height: 40px; border-radius: 8px; background: #222; object-fit: contain; }
+        .channel-item span { font-size: 0.9rem; }
+    </style>
 </head>
-
 <body>
 
-<div class="header">
-  <div class="back-btn" onclick="handleBack()"><i class="fas fa-arrow-left"></i></div>
-  <div class="digital-clock" id="clockBox"><span id="fullDateTime"></span></div>
-</div>
+    <div id="player-container">
+        <div id="loader"></div>
+        <video id="video" controls playsinline crossorigin="anonymous"></video>
+    </div>
 
-<div class="player-wrap" id="playerArea">
-  <div class="loader" id="loader"></div>
-  <video id="video" playsinline></video>
-  
-  <div class="q-menu" id="qMenu"></div>
+    <div class="info-bar">
+        <div class="ch-name" id="current-ch">Loading Channels...</div>
+        <i class="fas fa-times" onclick="history.back()" style="cursor:pointer; font-size: 1.2rem;"></i>
+    </div>
 
-  <div class="controls-overlay" id="controls">
-    <div class="bottom-bar">
-        <div class="mini-btns">
-            <i class="fas fa-backward" onclick="event.stopPropagation(); seek(-10)"></i>
-            <i class="fas fa-play" id="pp" onclick="event.stopPropagation(); togglePlay()"></i>
-            <i class="fas fa-forward" onclick="event.stopPropagation(); seek(10)"></i>
-        </div>
+    <div class="list-container" id="channel-list"></div>
+
+    <script>
+        const video = document.getElementById('video');
+        const loader = document.getElementById('loader');
+        const listContainer = document.getElementById('channel-list');
+        const currentChText = document.getElementById('current-ch');
         
-        <div class="right-side">
-            <span id="vTime">00:00</span>
-            <i class="fas fa-cog" onclick="event.stopPropagation(); toggleQMenu()"></i>
-            <i class="fas fa-volume-up" id="vBtn" onclick="event.stopPropagation(); toggleMute()"></i>
-            <i class="fas fa-expand" onclick="event.stopPropagation(); toggleFull()"></i>
-        </div>
-    </div>
-  </div>
-</div>
+        let hls = new Hls({
+            xhrSetup: function (xhr, url) { xhr.withCredentials = false; }
+        });
 
-<div class="info">
-    <div class="channel-meta">
-      <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
-      <div>
-        <h3 id="title">Select Channel</h3>
-        <small style="color:#888; font-size:0.75rem;">Watching Premium Stream</small>
-      </div>
-    </div>
-    <div class="badge" id="count">Total: 0</div>
-</div>
+        const urlParams = new URLSearchParams(window.location.search);
+        let playlistUrl = urlParams.get('playlist');
 
-<div class="actions">
-    <div onclick="openShare()"><i class="fas fa-share-nodes"></i>Share</div>
-    <div id="favBtnTab" onclick="toggleFavoriteView()"><i class="far fa-star"></i>My List</div>
-    <div onclick="window.open('https://t.me/bestiptvlive')"><i class="fas fa-paper-plane"></i>Join Telegram</div>
-</div>
-
-<div class="list" id="list"></div>
-
-<div id="toast">Link Copied!</div>
-
-<div class="share-modal" id="shareModal" onclick="closeShare()">
-    <div class="share-box" onclick="event.stopPropagation()">
-        <h3 style="color: #fff; margin-bottom: 10px;">Share App</h3>
-        <div class="share-grid">
-            <a href="#" class="share-item" id="shareWA" target="_blank">
-                <i class="fab fa-whatsapp" style="background:#25D366"></i>WhatsApp
-            </a>
-            <a href="#" class="share-item" id="shareTG" target="_blank">
-                <i class="fab fa-telegram-plane" style="background:#0088cc"></i>Telegram
-            </a>
-            <div class="share-item" onclick="copyApplink()">
-                <i class="fas fa-link" style="background:#555"></i>Copy Link
-            </div>
-        </div>
-        <button class="close-share" onclick="closeShare()">CANCEL</button>
-    </div>
-</div>
-
-<script>
-const video=document.getElementById('video'), controls=document.getElementById('controls');
-const clockBox=document.getElementById('clockBox'), loader=document.getElementById('loader');
-const pp=document.getElementById('pp'), listArea = document.getElementById('list'), qMenu = document.getElementById('qMenu');
-const playerArea = document.getElementById('playerArea');
-const defaultLogo = "https://i.imgur.com/8Qf6Y0L.png"; 
-
-let hls=new Hls(), allChannels = [], hideTimeout, isFavView = false;
-
-/* ১. স্মার্ট কন্ট্রোল ও ঘড়ি */
-function showControls() {
-    controls.classList.add('show');
-    clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(hideControls, 4000);
-}
-function hideControls() {
-    controls.classList.remove('show');
-    qMenu.classList.remove('active');
-}
-playerArea.addEventListener('click', (e) => { if (e.detail === 1) showControls(); });
-playerArea.addEventListener('dblclick', () => hideControls());
-
-function updateClock() {
-    const options = { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
-    document.getElementById('fullDateTime').innerText = new Date().toLocaleString('en-GB', options);
-}
-setInterval(updateClock, 1000); updateClock();
-
-video.ontimeupdate = () => {
-    let m = Math.floor(video.currentTime / 60), s = Math.floor(video.currentTime % 60);
-    document.getElementById('vTime').innerText = (m<10?'0'+m:m) + ":" + (s<10?'0'+s:s);
-};
-
-/* ২. ভিডিও প্লেয়ার ফাংশনস */
-function togglePlay(){
-    video.paused ? video.play() : video.pause();
-    pp.className = video.paused ? "fas fa-play" : "fas fa-pause";
-}
-function seek(t){ video.currentTime+=t; }
-function toggleMute(){
-    video.muted = !video.muted;
-    document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up";
-}
-function toggleFull(){
-    if(video.requestFullscreen) video.requestFullscreen();
-    else if(video.webkitRequestFullscreen) video.webkitRequestFullscreen();
-}
-function toggleQMenu() { qMenu.classList.toggle('active'); }
-
-/* ৩. ফেভারিট লজিক */
-const getFavs = () => JSON.parse(localStorage.getItem('fav_ch') || "[]");
-const saveFavs = (f) => localStorage.setItem('fav_ch', JSON.stringify(f));
-
-function toggleFav(ch, el) {
-    let favs = getFavs();
-    const idx = favs.findIndex(x => x.url === ch.url);
-    if(idx > -1) {
-        favs.splice(idx, 1); el.classList.replace('fas', 'far'); el.classList.remove('active');
-    } else {
-        favs.push(ch); el.classList.replace('far', 'fas'); el.classList.add('active');
-    }
-    saveFavs(favs);
-    if(isFavView) render(favs);
-}
-
-function toggleFavoriteView() {
-    isFavView = !isFavView;
-    document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
-    render(isFavView ? getFavs() : allChannels);
-}
-
-function handleBack() { if(isFavView) toggleFavoriteView(); else history.back(); }
-
-/* ৪. প্লে ও কোয়ালিটি সিস্টেম */
-function play(url, name, logo){
-  document.getElementById('title').innerText=name;
-  document.getElementById('currentLogo').src= logo || defaultLogo;
-  qMenu.innerHTML = "";
-  if(Hls.isSupported()){
-      hls.destroy(); hls=new Hls();
-      hls.loadSource(url); hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play(); setupQuality(); });
-  } else { video.src = url; video.play(); }
-  pp.className="fas fa-pause";
-}
-
-function setupQuality() {
-    let levels = hls.levels;
-    if(levels.length <= 1) { qMenu.innerHTML = `<button class="active">Auto (Fixed)</button>`; return; }
-    let html = `<button onclick="setQuality(-1)" class="active">Auto</button>`;
-    levels.forEach((l, i) => { html += `<button onclick="setQuality(${i})">${l.height}p</button>`; });
-    qMenu.innerHTML = html;
-}
-
-function setQuality(idx) {
-    hls.currentLevel = idx;
-    qMenu.classList.remove('active');
-    const btns = qMenu.querySelectorAll('button');
-    btns.forEach((b, i) => b.classList.toggle('active', i === idx + 1));
-}
-
-/* ৫. ডাটা প্রসেসিং ও রেন্ডারিং */
-const playlistUrl = new URLSearchParams(location.search).get('playlist');
-if(playlistUrl){
-    fetch(playlistUrl).then(r=>r.text()).then(data=>{
-      const lines=data.split('\n');
-      let arr=[],c={};
-      lines.forEach(l=>{
-        if(l.startsWith('#EXTINF')){
-          c.name = l.split(',')[1] ? l.split(',')[1].trim() : "Unknown Channel";
-          const m = l.match(/tvg-logo="([^"]*)"/) || l.match(/logo="([^"]*)"/);
-          c.logo = m ? m[1] : defaultLogo;
-        }else if(l.trim().startsWith('http')){
-          c.url = l.trim(); arr.push({...c}); c={};
+        if (playlistUrl) {
+            playlistUrl = playlistUrl.replace(/ /g, "%20");
+            fetchPlaylist(playlistUrl);
         }
-      });
-      allChannels = arr; render(allChannels);
-    });
-}
 
-function render(arr){
-  const favs = getFavs();
-  listArea.innerHTML = "";
-  document.getElementById('count').innerText = "Total: " + arr.length;
-  arr.forEach((c,i)=>{
-    const isFav = favs.some(x => x.url === c.url);
-    const d=document.createElement('div');
-    d.className="row";
-    d.innerHTML=`
-        <div class="logo-circle"><img src="${c.logo || defaultLogo}" onerror="this.src='${defaultLogo}'"></div>
-        <div class="name">${c.name}</div>
-        <i class="${isFav?'fas':'far'} fa-star star-btn ${isFav?'active':''}"></i>`;
-    d.onclick=()=>{
-        play(c.url, c.name, c.logo);
-        document.querySelectorAll('.row').forEach(x=>x.classList.remove('active'));
-        d.classList.add('active');
-    };
-    d.querySelector('.star-btn').onclick=(e)=>{ e.stopPropagation(); toggleFav(c, e.target); };
-    listArea.appendChild(d);
-    if(i===0 && !video.src && !isFavView) d.click();
-  });
-}
+        async function fetchPlaylist(url) {
+            try {
+                const response = await fetch(url);
+                const data = await response.text();
+                parseM3U(data);
+            } catch (err) {
+                currentChText.innerText = "Error loading playlist!";
+                loader.style.display = 'none';
+            }
+        }
 
-/* ৬. শেয়ার সিস্টেম ও আইডি হাইডার */
-const SHARE_APP_URL = "Https://bestiptv.rf.gd";
-const SHARE_TEXT = "Watch live TV for free on Best IPTV PRO! Join here: ";
+        function parseM3U(data) {
+            const lines = data.split('\n');
+            let channels = [];
+            let currentChannel = {};
 
-function openShare() {
-    document.getElementById('shareModal').style.display = 'flex';
-    document.getElementById('shareWA').href = `https://api.whatsapp.com/send?text=${encodeURIComponent(SHARE_TEXT + SHARE_APP_URL)}`;
-    document.getElementById('shareTG').href = `https://t.me/share/url?url=${encodeURIComponent(SHARE_APP_URL)}&text=${encodeURIComponent(SHARE_TEXT)}`;
-}
+            lines.forEach(line => {
+                line = line.trim();
+                if (line.startsWith('#EXTINF')) {
+                    const nameParts = line.split(',');
+                    currentChannel.name = nameParts[nameParts.length - 1].trim();
+                    const logoMatch = line.match(/tvg-logo="([^"]*)"/);
+                    currentChannel.logo = logoMatch ? logoMatch[1] : "";
+                } else if (line.startsWith('http')) {
+                    currentChannel.url = line.trim();
+                    channels.push({ ...currentChannel });
+                    currentChannel = {};
+                }
+            });
+            renderChannels(channels);
+        }
 
-function closeShare() { document.getElementById('shareModal').style.display = 'none'; }
+        function renderChannels(channels) {
+            listContainer.innerHTML = '';
+            channels.forEach((ch, index) => {
+                const div = document.createElement('div');
+                div.className = 'channel-item';
+                div.innerHTML = `
+                    <img src="${ch.logo || 'https://i.imgur.com/8Qf6Y0L.png'}" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
+                    <span>${ch.name}</span>
+                `;
+                div.onclick = () => playStream(ch.url, ch.name, div);
+                listContainer.appendChild(div);
+                if (index === 0) div.click();
+            });
+        }
 
-function copyApplink() {
-    navigator.clipboard.writeText(SHARE_APP_URL);
-    // কাস্টম টোস্ট যাতে GitHub ID না আসে
-    const toast = document.getElementById("toast");
-    toast.style.display = "block";
-    setTimeout(() => {
-        toast.style.display = "none";
-        closeShare();
-    }, 2000);
-}
+        function playStream(url, name, element) {
+            currentChText.innerText = name;
+            loader.style.display = 'block';
+            
+            document.querySelectorAll('.channel-item').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
 
-video.onloadstart = () => loader.style.display = "block";
-video.onplaying = () => loader.style.display = "none";
-video.onwaiting = () => loader.style.display = "block";
-</script>
+            // Hls ডিক্লেয়ারেশন পরিষ্কার করা
+            hls.detachMedia();
+            video.pause();
+            video.src = "";
+
+            if (url.includes('.m3u8')) {
+                if (Hls.isSupported()) {
+                    hls.loadSource(url);
+                    hls.attachMedia(video);
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    video.src = url;
+                    video.play();
+                }
+            } else {
+                // রেডিও স্ট্রিম বা সরাসরি প্রক্সি লিঙ্কের জন্য (যেমন আপনার দেওয়া লিঙ্কটি)
+                video.src = url;
+                video.play().catch(e => {
+                    console.error("Playback Error:", e);
+                    loader.style.display = 'none';
+                });
+            }
+        }
+
+        video.onplaying = () => loader.style.display = 'none';
+        video.onwaiting = () => loader.style.display = 'block';
+        video.onerror = () => {
+            loader.style.display = 'none';
+            console.log("Stream Error - Check if link is HTTP or HTTPS");
+        };
+    </script>
 </body>
 </html>
