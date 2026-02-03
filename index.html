@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Live TV - Playlists</title>
+    <title>Best IPTV PRO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
@@ -12,100 +12,236 @@
             --accent: #2196F3;
             --text: #fff;
             --border: #222;
+            --danger: #ff4b2b;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Arial', sans-serif; }
+        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        body {
-            background: var(--bg);
-            color: var(--text);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
+        /* HEADER */
         .header {
-            height: 60px;
-            background: var(--card);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 20px;
-            border-bottom: 1px solid var(--border);
+            height: 60px; background: var(--card); display: flex;
+            align-items: center; justify-content: space-between;
+            padding: 0 20px; border-bottom: 1px solid var(--border);
         }
-
-        .app-name {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--accent);
-            letter-spacing: 1px;
-        }
-
-        .header-icons {
-            display: flex;
-            gap: 15px;
-        }
-
+        .app-name { font-size: 1.3rem; font-weight: bold; color: var(--accent); letter-spacing: 1px; }
         .icon-btn {
-            background: rgba(255,255,255,0.05);
-            border: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            color: #fff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            background: rgba(255,255,255,0.05); border: none;
+            width: 40px; height: 40px; border-radius: 50%;
+            color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;
         }
 
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-        }
-
-        .section-title {
-            font-size: 0.9rem;
-            color: #888;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-        }
-
-        .playlist-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
+        /* MAIN CONTENT */
+        .main-content { flex: 1; overflow-y: auto; padding: 20px; }
+        .section-title { font-size: 0.9rem; color: #888; margin-bottom: 15px; text-transform: uppercase; }
+        .playlist-list { display: flex; flex-direction: column; gap: 12px; }
 
         .playlist-item {
-            background: var(--card);
-            border: 1px solid var(--border);
-            padding: 15px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            transition: 0.2s;
+            background: var(--card); border: 1px solid var(--border);
+            padding: 15px; border-radius: 12px; display: flex;
+            align-items: center; transition: 0.2s;
         }
-
-        .playlist-item:hover {
-            border-color: var(--accent);
-        }
+        .playlist-item:hover { border-color: var(--accent); }
 
         .playlist-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(33, 150, 243, 0.1);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
+            width: 45px; height: 45px; background: rgba(33, 150, 243, 0.1);
+            border-radius: 10px; display: flex; align-items: center;
+            justify-content: center; color: var(--accent); margin-right: 15px;
+        }
+
+        .playlist-info { flex: 1; cursor: pointer; }
+        .playlist-name { font-weight: 500; font-size: 1rem; margin-bottom: 2px; }
+        .playlist-meta { font-size: 0.7rem; color: #666; }
+
+        .del-btn {
+            color: #444; padding: 10px; cursor: pointer; transition: 0.3s;
+        }
+        .del-btn:hover { color: var(--danger); }
+
+        /* MODAL (CENTERED) */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+            display: none; z-index: 1000; backdrop-filter: blur(5px);
+        }
+
+        .input-modal {
+            position: fixed; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: 90%; max-width: 400px;
+            background: var(--card); padding: 25px;
+            border-radius: 20px; border: 1px solid var(--border);
+            z-index: 1001; display: none; transition: 0.3s;
+        }
+        .input-modal.active { display: block; transform: translate(-50%, -50%) scale(1); }
+
+        .input-form { display: flex; flex-direction: column; gap: 15px; }
+        .input-field {
+            background: #1a1a1a; border: 1px solid var(--border);
+            padding: 12px 15px; border-radius: 10px; color: #fff; outline: none;
+        }
+        .input-field:focus { border-color: var(--accent); }
+
+        .file-upload-box {
+            border: 2px dashed var(--border); padding: 15px;
+            text-align: center; border-radius: 10px; cursor: pointer; color: #888;
+        }
+
+        .submit-btn {
+            background: var(--accent); color: #fff; border: none;
+            padding: 14px; border-radius: 10px; font-weight: bold; cursor: pointer;
+        }
+
+        .footer { padding: 15px; background: var(--card); border-top: 1px solid var(--border); text-align: center; }
+        .footer-link { color: #555; text-decoration: none; font-size: 0.75rem; }
+
+        #notification {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            background: var(--accent); padding: 10px 25px; border-radius: 20px;
+            font-size: 0.8rem; display: none; z-index: 2000; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="app-name">Best IPTV PRO</div>
+        <div class="header-icons">
+            <button class="icon-btn" id="addBtn"><i class="fas fa-plus"></i></button>
+            <button class="icon-btn" onclick="location.reload()"><i class="fas fa-sync-alt"></i></button>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <h2 class="section-title">Playlists</h2>
+        <div class="playlist-list" id="playlistList"></div>
+    </main>
+
+    <div class="modal-backdrop" id="backdrop"></div>
+    <div class="input-modal" id="modal">
+        <h3 style="margin-bottom: 20px; text-align: center;">Add New Playlist</h3>
+        <form class="input-form" id="pForm">
+            <input type="text" class="input-field" placeholder="Playlist Name" id="pName">
+            <input type="text" class="input-field" placeholder="M3U URL" id="pUrl">
+            <div style="text-align: center; color: #444; font-size: 0.7rem;">OR</div>
+            <div class="file-upload-box" onclick="document.getElementById('pFile').click()">
+                <i class="fas fa-file-upload" style="font-size: 1.2rem; margin-bottom: 5px;"></i>
+                <p id="fName">Upload M3U File</p>
+                <input type="file" id="pFile" accept=".m3u,.m3u8" style="display: none;">
+            </div>
+            <button type="submit" class="submit-btn">ADD PLAYLIST</button>
+        </form>
+    </div>
+
+    <div id="notification"></div>
+
+    <footer class="footer">
+        <a href="#" class="footer-link">Developed by Rbel Ahmed | v2.0</a>
+    </footer>
+
+    <script>
+        const playlistList = document.getElementById('playlistList');
+        const modal = document.getElementById('modal');
+        const backdrop = document.getElementById('backdrop');
+        const pFile = document.getElementById('pFile');
+        const fNameDisp = document.getElementById('fName');
+
+        // ৩টি ডিফল্ট সার্ভার
+        const defaultPlaylists = [
+            { id: 'd1', name: "Server 1", url: "Server 1.m3u", type: "default" },
+            { id: 'd2', name: "Server 2", url: "Server 2.m3u", type: "default" },
+            { id: 'd3', name: "Server 3", url: "Server 3.m3u", type: "default" }
+        ];
+
+        function notify(msg) {
+            const n = document.getElementById('notification');
+            n.innerText = msg; n.style.display = 'block';
+            setTimeout(() => n.style.display = 'none', 2000);
+        }
+
+        pFile.onchange = (e) => {
+            if(e.target.files.length > 0) fNameDisp.innerText = e.target.files[0].name;
+        };
+
+        function render() {
+            const saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
+            playlistList.innerHTML = '';
+            
+            // ডিফল্ট সার্ভার রেন্ডার
+            defaultPlaylists.forEach(p => createItem(p));
+            // ইউজারের সার্ভার রেন্ডার
+            saved.forEach(p => createItem(p));
+        }
+
+        function createItem(p) {
+            const div = document.createElement('div');
+            div.className = 'playlist-item';
+            div.innerHTML = `
+                <div class="playlist-icon"><i class="fas fa-play-circle"></i></div>
+                <div class="playlist-info" onclick="goToPlayer('${p.url}')">
+                    <div class="playlist-name">${p.name}</div>
+                    <div class="playlist-meta">${p.type === 'default' ? 'Official Server' : 'User Added'}</div>
+                </div>
+                ${p.type !== 'default' ? `<div class="del-btn" onclick="deletePlaylist('${p.id}')"><i class="fas fa-trash-alt"></i></div>` : '<i class="fas fa-chevron-right" style="color:#222; margin-right:10px"></i>'}
+            `;
+            playlistList.appendChild(div);
+        }
+
+        function goToPlayer(url) {
+            window.location.href = `video.html?playlist=${encodeURIComponent(url)}`;
+        }
+
+        function deletePlaylist(id) {
+            if(confirm("Delete this playlist?")) {
+                let saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
+                saved = saved.filter(x => x.id !== id);
+                localStorage.setItem('user_playlists', JSON.stringify(saved));
+                render();
+                notify("Deleted!");
+            }
+        }
+
+        document.getElementById('addBtn').onclick = () => {
+            modal.classList.add('active');
+            backdrop.style.display = 'block';
+        };
+
+        backdrop.onclick = () => {
+            modal.classList.remove('active');
+            backdrop.style.display = 'none';
+        };
+
+        document.getElementById('pForm').onsubmit = (e) => {
+            e.preventDefault();
+            const url = document.getElementById('pUrl').value;
+            const name = document.getElementById('pName').value || "My Playlist";
+            const file = pFile.files[0];
+
+            let newP = { id: Date.now().toString(), name: name };
+
+            if (file) {
+                newP.url = URL.createObjectURL(file);
+                newP.name = file.name.replace('.m3u','');
+            } else if (url) {
+                newP.url = url;
+            } else {
+                alert("Provide a Link or File!");
+                return;
+            }
+
+            const saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
+            saved.push(newP);
+            localStorage.setItem('user_playlists', JSON.stringify(saved));
+            
+            render();
+            notify("Added Successfully!");
+            backdrop.onclick();
+            e.target.reset();
+            fNameDisp.innerText = "Upload M3U File";
+        };
+
+        document.addEventListener('DOMContentLoaded', render);
+    </script>
+</body>
+</html>
             justify-content: center;
             color: var(--accent);
             margin-right: 15px;
