@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pro TV Player</title>
+<title>Best IPTV PRO Player</title>
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -23,7 +23,7 @@ body{ background:var(--bg); color:var(--text); height:100vh; display:flex; flex-
 /* HEADER */
 .header{ height:50px; display:flex; align-items:center; justify-content: space-between; padding:0 15px; border-bottom:1px solid #222; }
 .back-btn { font-size: 1.5rem; cursor: pointer; color: #fff; }
-.digital-clock { font-size: 0.75rem; color: #bbb; opacity: 0; transition: 0.3s; }
+.digital-clock { font-size: 0.75rem; color: #bbb; opacity: 1; transition: 0.3s; }
 
 /* PLAYER AREA */
 .player-wrap{ position:relative; width:100%; aspect-ratio:16/9; background:#000; overflow: hidden; cursor: pointer;}
@@ -69,7 +69,6 @@ video{ width:100%; height:100%; object-fit: contain; pointer-events: none;}
     background: none; border: none; color: #fff; padding: 10px;
     font-size: 0.75rem; text-align: left; cursor: pointer; border-bottom: 1px solid #222;
 }
-.q-menu button:last-child { border: none; }
 .q-menu button.active { color: var(--accent); font-weight: bold; }
 
 /* INFO SECTION */
@@ -95,7 +94,7 @@ video{ width:100%; height:100%; object-fit: contain; pointer-events: none;}
 .star-btn { font-size: 1.1rem; color: #333; padding: 5px; }
 .star-btn.active { color: var(--fav); }
 
-/* SHARE MODAL STYLE */
+/* SHARE MODAL CSS */
 .share-modal {
     position: fixed; inset: 0; background: rgba(0,0,0,0.85);
     display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(5px);
@@ -105,6 +104,13 @@ video{ width:100%; height:100%; object-fit: contain; pointer-events: none;}
 .share-item { cursor: pointer; font-size: 0.7rem; color: #ccc; text-decoration: none; }
 .share-item i { width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 1.3rem; margin: 0 auto 8px; }
 .close-share { background: none; border: none; color: var(--accent); font-weight: bold; cursor: pointer; margin-top: 10px; }
+
+/* CUSTOM TOAST (ID HIDER) */
+#toast {
+    position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%);
+    background: #2196F3; color: white; padding: 10px 20px; border-radius: 50px;
+    font-size: 0.85rem; z-index: 9999; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
 </style>
 </head>
 
@@ -158,6 +164,8 @@ video{ width:100%; height:100%; object-fit: contain; pointer-events: none;}
 
 <div class="list" id="list"></div>
 
+<div id="toast">Link Copied!</div>
+
 <div class="share-modal" id="shareModal" onclick="closeShare()">
     <div class="share-box" onclick="event.stopPropagation()">
         <h3 style="color: #fff; margin-bottom: 10px;">Share App</h3>
@@ -188,22 +196,15 @@ let hls=new Hls(), allChannels = [], hideTimeout, isFavView = false;
 /* ১. স্মার্ট কন্ট্রোল ও ঘড়ি */
 function showControls() {
     controls.classList.add('show');
-    clockBox.style.opacity = "1";
     clearTimeout(hideTimeout);
     hideTimeout = setTimeout(hideControls, 4000);
 }
-
 function hideControls() {
     controls.classList.remove('show');
-    clockBox.style.opacity = "0";
     qMenu.classList.remove('active');
 }
-
-playerArea.addEventListener('click', (e) => {
-    if (e.detail === 1) { showControls(); }
-});
-
-playerArea.addEventListener('dblclick', () => { hideControls(); });
+playerArea.addEventListener('click', (e) => { if (e.detail === 1) showControls(); });
+playerArea.addEventListener('dblclick', () => hideControls());
 
 function updateClock() {
     const options = { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
@@ -240,13 +241,9 @@ function toggleFav(ch, el) {
     let favs = getFavs();
     const idx = favs.findIndex(x => x.url === ch.url);
     if(idx > -1) {
-        favs.splice(idx, 1);
-        el.classList.replace('fas', 'far');
-        el.classList.remove('active');
+        favs.splice(idx, 1); el.classList.replace('fas', 'far'); el.classList.remove('active');
     } else {
-        favs.push(ch);
-        el.classList.replace('far', 'fas');
-        el.classList.add('active');
+        favs.push(ch); el.classList.replace('far', 'fas'); el.classList.add('active');
     }
     saveFavs(favs);
     if(isFavView) render(favs);
@@ -258,37 +255,26 @@ function toggleFavoriteView() {
     render(isFavView ? getFavs() : allChannels);
 }
 
-function handleBack() {
-    if(isFavView) toggleFavoriteView();
-    else history.back();
-}
+function handleBack() { if(isFavView) toggleFavoriteView(); else history.back(); }
 
 /* ৪. প্লে ও কোয়ালিটি সিস্টেম */
 function play(url, name, logo){
   document.getElementById('title').innerText=name;
-  document.getElementById('currentLogo').src= (logo && logo.length > 5) ? logo : defaultLogo;
+  document.getElementById('currentLogo').src= logo || defaultLogo;
   qMenu.innerHTML = "";
   if(Hls.isSupported()){
       hls.destroy(); hls=new Hls();
       hls.loadSource(url); hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play();
-          setupQuality();
-      });
+      hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play(); setupQuality(); });
   } else { video.src = url; video.play(); }
   pp.className="fas fa-pause";
 }
 
 function setupQuality() {
     let levels = hls.levels;
-    if(levels.length <= 1) {
-        qMenu.innerHTML = `<button class="active">Auto (Fixed)</button>`;
-        return;
-    }
+    if(levels.length <= 1) { qMenu.innerHTML = `<button class="active">Auto (Fixed)</button>`; return; }
     let html = `<button onclick="setQuality(-1)" class="active">Auto</button>`;
-    levels.forEach((l, i) => {
-        html += `<button onclick="setQuality(${i})">${l.height}p</button>`;
-    });
+    levels.forEach((l, i) => { html += `<button onclick="setQuality(${i})">${l.height}p</button>`; });
     qMenu.innerHTML = html;
 }
 
@@ -309,11 +295,9 @@ if(playlistUrl){
         if(l.startsWith('#EXTINF')){
           c.name = l.split(',')[1] ? l.split(',')[1].trim() : "Unknown Channel";
           const m = l.match(/tvg-logo="([^"]*)"/) || l.match(/logo="([^"]*)"/);
-          c.logo = (m && m[1] && m[1].length > 5) ? m[1] : defaultLogo;
+          c.logo = m ? m[1] : defaultLogo;
         }else if(l.trim().startsWith('http')){
-          c.url = l.trim();
-          arr.push({...c});
-          c={};
+          c.url = l.trim(); arr.push({...c}); c={};
         }
       });
       allChannels = arr; render(allChannels);
@@ -328,32 +312,22 @@ function render(arr){
     const isFav = favs.some(x => x.url === c.url);
     const d=document.createElement('div');
     d.className="row";
-    const imgUrl = (c.logo && c.logo.length > 5) ? c.logo : defaultLogo;
-    
     d.innerHTML=`
-        <div class="logo-circle"><img src="${imgUrl}" onerror="this.src='${defaultLogo}'"></div>
+        <div class="logo-circle"><img src="${c.logo || defaultLogo}" onerror="this.src='${defaultLogo}'"></div>
         <div class="name">${c.name}</div>
         <i class="${isFav?'fas':'far'} fa-star star-btn ${isFav?'active':''}"></i>`;
-    
     d.onclick=()=>{
         play(c.url, c.name, c.logo);
         document.querySelectorAll('.row').forEach(x=>x.classList.remove('active'));
         d.classList.add('active');
     };
-    d.querySelector('.star-btn').onclick=(e)=>{
-        e.stopPropagation();
-        toggleFav(c, e.target);
-    };
+    d.querySelector('.star-btn').onclick=(e)=>{ e.stopPropagation(); toggleFav(c, e.target); };
     listArea.appendChild(d);
     if(i===0 && !video.src && !isFavView) d.click();
   });
 }
 
-video.onloadstart = () => loader.style.display = "block";
-video.onplaying = () => loader.style.display = "none";
-video.onwaiting = () => loader.style.display = "block";
-
-/* ৬. শেয়ার সিস্টেম (আপনার দেওয়া লিঙ্কের সাথে) */
+/* ৬. শেয়ার সিস্টেম ও আইডি হাইডার */
 const SHARE_APP_URL = "Https://bestiptv.rf.gd";
 const SHARE_TEXT = "Watch live TV for free on Best IPTV PRO! Join here: ";
 
@@ -363,15 +337,22 @@ function openShare() {
     document.getElementById('shareTG').href = `https://t.me/share/url?url=${encodeURIComponent(SHARE_APP_URL)}&text=${encodeURIComponent(SHARE_TEXT)}`;
 }
 
-function closeShare() {
-    document.getElementById('shareModal').style.display = 'none';
-}
+function closeShare() { document.getElementById('shareModal').style.display = 'none'; }
 
 function copyApplink() {
     navigator.clipboard.writeText(SHARE_APP_URL);
-    alert("Link Copied!");
-    closeShare();
+    // কাস্টম টোস্ট যাতে GitHub ID না আসে
+    const toast = document.getElementById("toast");
+    toast.style.display = "block";
+    setTimeout(() => {
+        toast.style.display = "none";
+        closeShare();
+    }, 2000);
 }
+
+video.onloadstart = () => loader.style.display = "block";
+video.onplaying = () => loader.style.display = "none";
+video.onwaiting = () => loader.style.display = "block";
 </script>
 </body>
 </html>
