@@ -69,23 +69,15 @@ video{ width:100%; height:100%; object-fit: contain; }
     background: none; border: none; color: #fff; padding: 10px;
     font-size: 0.75rem; text-align: left; cursor: pointer; border-bottom: 1px solid #222;
 }
+.q-menu button:last-child { border: none; }
 .q-menu button.active { color: var(--accent); font-weight: bold; }
 
 /* INFO SECTION */
 .info{ padding:12px 15px; display:flex; justify-content:space-between; align-items: center; }
 .channel-meta { display: flex; align-items: center; gap: 10px; }
-.mini-logo { width: 35px; height: 35px; border-radius: 50%; border: 1px solid #333; object-fit: contain; background: #1a1a1a; }
+.mini-logo { width: 35px; height: 35px; border-radius: 50%; border: 1px solid #333; object-fit: contain; background: #111;}
 .info h3 { font-size: 0.95rem; }
 .badge{ background:#111; padding:3px 10px; border-radius:15px; color:var(--accent); font-size:.65rem; border: 1px solid #222; }
-
-/* SEARCH BAR */
-.search-box { padding: 0 15px 10px; }
-.search-input {
-    width: 100%; background: #111; border: 1px solid #333; 
-    border-radius: 20px; padding: 8px 15px; color: #fff; 
-    font-size: 0.85rem; outline: none;
-}
-.search-input:focus { border-color: var(--accent); }
 
 /* ACTIONS */
 .actions{ display:flex; justify-content:space-around; padding:10px 0; border-top:1px solid #222; border-bottom:1px solid #222; }
@@ -97,7 +89,7 @@ video{ width:100%; height:100%; object-fit: contain; }
 .list{ flex:1; overflow-y:auto; padding:10px 15px; }
 .row{ display:flex; align-items:center; gap:10px; background:var(--card); padding:8px; border-radius:8px; margin-bottom:8px; cursor:pointer; }
 .row.active{ border-left: 3px solid var(--accent); background: #0d2233; }
-.logo-circle{ width:35px; height:35px; border-radius:50%; overflow: hidden; border: 1px solid #333; flex-shrink: 0; background: #000; display: flex; align-items: center; justify-content: center;}
+.logo-circle{ width:35px; height:35px; border-radius:50%; overflow: hidden; border: 1px solid #333; flex-shrink: 0; background: #000;}
 .logo-circle img{ width:100%; height:100%; object-fit: contain; }
 .name{ flex:1; font-size: 0.85rem; }
 .star-btn { font-size: 1.1rem; color: #444; padding: 5px; }
@@ -106,6 +98,227 @@ video{ width:100%; height:100%; object-fit: contain; }
 </head>
 
 <body>
+
+<div class="header">
+  <div class="back-btn" onclick="handleBack()"><i class="fas fa-arrow-left"></i></div>
+  <div class="digital-clock" id="clockBox"><span id="fullDateTime"></span></div>
+</div>
+
+<div class="player-wrap" id="playerArea">
+  <div class="loader" id="loader"></div>
+  <video id="video" playsinline></video>
+  
+  <div class="q-menu" id="qMenu"></div>
+
+  <div class="controls-overlay" id="controls">
+    <div class="bottom-bar">
+        <div class="mini-btns">
+            <i class="fas fa-backward" onclick="event.stopPropagation(); seek(-10)"></i>
+            <i class="fas fa-play" id="pp" onclick="event.stopPropagation(); togglePlay()"></i>
+            <i class="fas fa-forward" onclick="event.stopPropagation(); seek(10)"></i>
+        </div>
+        
+        <div class="right-side">
+            <span id="vTime">00:00</span>
+            <i class="fas fa-cog" onclick="event.stopPropagation(); toggleQMenu()"></i>
+            <i class="fas fa-volume-up" id="vBtn" onclick="event.stopPropagation(); toggleMute()"></i>
+            <i class="fas fa-expand" onclick="event.stopPropagation(); toggleFull()"></i>
+        </div>
+    </div>
+  </div>
+</div>
+
+<div class="info">
+    <div class="channel-meta">
+      <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
+      <div>
+        <h3 id="title">Select Channel</h3>
+        <small id="sub-title" style="color:#888; font-size:0.7rem;">Watching live stream</small>
+      </div>
+    </div>
+    <div class="badge" id="count">Total: 0</div>
+</div>
+
+<div class="actions">
+    <div onclick="copyLink()"><i class="fas fa-share-nodes"></i>Share</div>
+    <div id="favBtnTab" onclick="toggleFavoriteView()"><i class="far fa-star"></i>My List</div>
+    <div onclick="window.open('https://t.me/bestiptvlive')"><i class="fas fa-paper-plane"></i>Join Telegram</div>
+</div>
+
+<div class="list" id="list"></div>
+
+<script>
+const video=document.getElementById('video'), controls=document.getElementById('controls');
+const clockBox=document.getElementById('clockBox'), loader=document.getElementById('loader');
+const pp=document.getElementById('pp'), listArea = document.getElementById('list'), qMenu = document.getElementById('qMenu');
+const defaultLogo = "https://i.imgur.com/8Qf6Y0L.png"; // প্লে আইকন লোগো
+
+let hls=new Hls(), allChannels = [], hideTimeout, isFavView = false;
+
+/* ১. স্মার্ট হাইড ও ঘড়ি */
+function showControls() {
+    controls.classList.add('show');
+    clockBox.style.opacity = "1";
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+        controls.classList.remove('show');
+        clockBox.style.opacity = "0";
+        qMenu.classList.remove('active');
+    }, 3000);
+}
+playerArea.onclick = showControls;
+
+function updateClock() {
+    const options = { weekday: 'short', day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+    document.getElementById('fullDateTime').innerText = new Date().toLocaleString('en-GB', options);
+}
+setInterval(updateClock, 1000); updateClock();
+
+video.ontimeupdate = () => {
+    let m = Math.floor(video.currentTime / 60), s = Math.floor(video.currentTime % 60);
+    document.getElementById('vTime').innerText = (m<10?'0'+m:m) + ":" + (s<10?'0'+s:s);
+};
+
+/* ২. ভিডিও ফাংশনস */
+function togglePlay(){
+    video.paused ? video.play() : video.pause();
+    pp.className = video.paused ? "fas fa-play" : "fas fa-pause";
+}
+function seek(t){ video.currentTime+=t; }
+function toggleMute(){
+    video.muted = !video.muted;
+    document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up";
+}
+function toggleFull(){
+    if(video.requestFullscreen) video.requestFullscreen();
+    else if(video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+}
+function toggleQMenu() { qMenu.classList.toggle('active'); }
+
+/* ৩. ফেভারিট লজিক */
+const getFavs = () => JSON.parse(localStorage.getItem('fav_ch') || "[]");
+const saveFavs = (f) => localStorage.setItem('fav_ch', JSON.stringify(f));
+
+function toggleFav(ch, el) {
+    let favs = getFavs();
+    const idx = favs.findIndex(x => x.url === ch.url);
+    if(idx > -1) {
+        favs.splice(idx, 1);
+        el.classList.replace('fas', 'far');
+        el.classList.remove('active');
+    } else {
+        favs.push(ch);
+        el.classList.replace('far', 'fas');
+        el.classList.add('active');
+    }
+    saveFavs(favs);
+    if(isFavView) render(favs);
+}
+
+function toggleFavoriteView() {
+    isFavView = !isFavView;
+    document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
+    render(isFavView ? getFavs() : allChannels);
+}
+
+function handleBack() {
+    if(isFavView) toggleFavoriteView();
+    else history.back();
+}
+
+/* ৪. প্লে ও কোয়ালিটি */
+function play(url, name, logo){
+  document.getElementById('title').innerText=name;
+  document.getElementById('currentLogo').src=logo || defaultLogo;
+  qMenu.innerHTML = "";
+  if(Hls.isSupported()){
+      hls.destroy(); hls=new Hls();
+      hls.loadSource(url); hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          video.play();
+          setupQuality();
+      });
+  } else { video.src = url; video.play(); }
+  pp.className="fas fa-pause";
+}
+
+function setupQuality() {
+    let levels = hls.levels;
+    let html = `<button onclick="setQuality(-1)" class="active">Auto</button>`;
+    levels.forEach((l, i) => {
+        html += `<button onclick="setQuality(${i})">${l.height}p</button>`;
+    });
+    qMenu.innerHTML = html;
+}
+
+function setQuality(idx) {
+    hls.currentLevel = idx;
+    qMenu.classList.remove('active');
+    qMenu.querySelectorAll('button').forEach((b, i) => b.classList.toggle('active', i === idx + 1));
+}
+
+/* ৫. ডাটা লোডিং (Fixed Logo Detection) */
+const playlistUrl = new URLSearchParams(location.search).get('playlist');
+if(playlistUrl){
+    fetch(playlistUrl).then(r=>r.text()).then(data=>{
+      const lines=data.split('\n');
+      let arr=[],c={};
+      lines.forEach(l=>{
+        if(l.startsWith('#EXTINF')){
+          c.name = l.split(',')[1] ? l.split(',')[1].trim() : "Unknown Channel";
+          
+          // Improved Regex to find logo url inside tvg-logo or logo tags
+          const m = l.match(/tvg-logo="([^"]*)"/) || l.match(/logo="([^"]*)"/);
+          c.logo = (m && m[1] && m[1].length > 5) ? m[1] : defaultLogo;
+        }else if(l.trim().startsWith('http')){
+          c.url = l.trim();
+          arr.push({...c});
+          c={};
+        }
+      });
+      allChannels = arr; render(allChannels);
+    });
+}
+
+function render(arr){
+  const favs = getFavs();
+  listArea.innerHTML = "";
+  document.getElementById('count').innerText = "Total: " + arr.length;
+  arr.forEach((c,i)=>{
+    const isFav = favs.some(x => x.url === c.url);
+    const d=document.createElement('div');
+    d.className="row";
+    
+    // Use defaultLogo if c.logo is missing
+    const imgUrl = c.logo || defaultLogo;
+    
+    d.innerHTML=`
+        <div class="logo-circle"><img src="${imgUrl}" onerror="this.src='${defaultLogo}'"></div>
+        <div class="name">${c.name}</div>
+        <i class="${isFav?'fas':'far'} fa-star star-btn ${isFav?'active':''}"></i>`;
+    
+    d.onclick=()=>{
+        play(c.url, c.name, c.logo);
+        document.querySelectorAll('.row').forEach(x=>x.classList.remove('active'));
+        d.classList.add('active');
+    };
+    d.querySelector('.star-btn').onclick=(e)=>{
+        e.stopPropagation();
+        toggleFav(c, e.target);
+    };
+    listArea.appendChild(d);
+    if(i===0 && !video.src && !isFavView) d.click();
+  });
+}
+
+video.onloadstart = () => loader.style.display = "block";
+video.onplaying = () => loader.style.display = "none";
+video.onwaiting = () => loader.style.display = "block";
+
+function copyLink(){ navigator.clipboard.writeText(video.src); alert("Link Copied!"); }
+</script>
+</body>
+</html>
 
 <div class="header">
   <div class="back-btn" onclick="handleBack()"><i class="fas fa-arrow-left"></i></div>
