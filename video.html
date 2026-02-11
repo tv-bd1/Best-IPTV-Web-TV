@@ -27,58 +27,49 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
     border-radius: 10px 10px 0 0; 
     animation: jump 0.5s ease-in-out infinite alternate; 
     box-shadow: 0 0 15px rgba(0, 229, 255, 0.6);
-    opacity: 0.8;
 }
 @keyframes jump { 
     0% { height: 10%; filter: hue-rotate(0deg); } 
     100% { height: 85%; filter: hue-rotate(20deg); } 
 }
 
-/* HUD (Center Style) */
+/* HUD (Center Box) */
 #hud { 
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
     background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px);
     color: white; padding: 25px; border-radius: 30px; z-index: 200; 
     display: none; text-align: center; border: 1px solid rgba(255,255,255,0.1);
 }
-#hud i { display: block; font-size: 3rem; margin-bottom: 10px; color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+#hud i { display: block; font-size: 3rem; margin-bottom: 10px; color: var(--accent); }
 
 /* CONTROLS */
 .controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 100; display: flex; flex-direction: column; justify-content: flex-end; }
 .controls-overlay.show { opacity: 1; visibility: visible; }
 .bottom-bar { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.95)); display: flex; justify-content: space-between; align-items: center; }
-.mini-btns i, .right-side i { font-size: 1.5rem; color: #fff; cursor: pointer; padding: 5px 10px; transition: 0.2s; }
-.mini-btns i:active { transform: scale(0.9); color: var(--accent); }
-
-/* POPUP MENU */
-.pop-menu { position: absolute; bottom: 75px; background: rgba(15, 15, 15, 0.95); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 15px; display: none; flex-direction: column; z-index: 150; min-width: 170px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-.pop-menu button { background: none; border: none; color: #fff; padding: 15px 20px; text-align: left; font-size: 14px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.pop-menu button:hover { background: rgba(0, 229, 255, 0.1); }
+.mini-btns i, .right-side i { font-size: 1.5rem; color: #fff; cursor: pointer; padding: 5px 10px; }
 
 /* UI ELEMENTS */
 .info { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; border-bottom: 1px solid #1a1a1a; }
 .actions { display: flex; padding: 15px 0; background: #050505; border-bottom: 1px solid #1a1a1a; }
-.actions div { flex: 1; text-align: center; font-size: 0.9rem; color: #aaa; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
-.actions div i { font-size: 1.1rem; }
-.actions div:active { color: var(--accent); }
-.active-tab { color: var(--accent) !important; font-weight: bold; text-shadow: 0 0 5px var(--accent); }
+.actions div { flex: 1; text-align: center; font-size: 0.9rem; color: #aaa; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.active-tab { color: var(--accent) !important; font-weight: bold; }
 
-.list { flex: 1; overflow-y: auto; padding: 12px; background: #000; }
-.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 14px; border-radius: 16px; margin-bottom: 12px; border: 1px solid #222; transition: 0.3s; position: relative; }
+.list { flex: 1; overflow-y: auto; padding: 12px; }
+.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 14px; border-radius: 16px; margin-bottom: 12px; border: 1px solid #222; }
 .row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.08); }
-.row.active::before { content: ''; position: absolute; left: 0; top: 20%; height: 60%; width: 4px; background: var(--accent); border-radius: 0 5px 5px 0; }
-.star-btn { font-size: 1.3rem; color: #333; transition: 0.3s; }
+.star-btn { font-size: 1.3rem; color: #333; }
 .star-btn.is-fav { color: var(--fav); }
 </style>
 </head>
 <body>
 
 <div class="player-wrap" id="playerArea">
-    <div id="audioAnim"></div> <div id="hud"><i id="hudIcon"></i><span id="hudValue">0%</span></div>
+    <div id="audioAnim"></div>
+    <div id="hud"><i id="hudIcon"></i><span id="hudValue">0%</span></div>
     <video id="video" playsinline crossorigin="anonymous"></video>
     
     <div class="controls-overlay" id="controls">
-        <div class="pop-menu" id="popMenu"></div>
+        <div class="pop-menu" id="popMenu" style="display:none; position:absolute; bottom:75px; background:rgba(15,15,15,0.95); border:1px solid rgba(255,255,255,0.15); border-radius:15px; z-index:150; flex-direction:column; overflow:hidden;"></div>
         <div class="bottom-bar">
             <div class="mini-btns"><i class="fas fa-play" id="pp" onclick="togglePlay(event)"></i><i class="fas fa-redo" onclick="location.reload()"></i></div>
             <div class="right-side">
@@ -92,15 +83,15 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 
 <div class="info">
     <div style="display:flex; align-items:center; gap:12px;">
-        <img id="currentLogo" style="width:48px; height:48px; border-radius:12px; object-fit:cover; border: 1px solid #222;" src="https://i.imgur.com/8Qf6Y0L.png">
-        <div><h3 id="title" style="font-size:15px; color:#fff; font-weight: 600;">Select Station</h3><small id="mediaType" style="color:var(--accent); font-weight: bold; letter-spacing: 0.5px;">LIVE</small></div>
+        <img id="currentLogo" style="width:48px; height:48px; border-radius:12px; object-fit:cover;" src="https://i.imgur.com/8Qf6Y0L.png">
+        <div><h3 id="title" style="font-size:15px; color:#fff;">Select Station</h3><small id="mediaType" style="color:var(--accent);">LIVE</small></div>
     </div>
-    <div id="count" style="font-size:12px; color:var(--accent); background: rgba(0,229,255,0.1); padding: 4px 10px; border-radius: 20px;">0 CH</div>
+    <div id="count" style="font-size:12px; color:var(--accent); background:rgba(0,229,255,0.1); padding:4px 10px; border-radius:20px;">0 CH</div>
 </div>
 
 <div class="actions">
-    <div onclick="copyShareLink()"><i class="fas fa-share-alt"></i> Share</div>
-    <div id="favBtnTab" onclick="toggleFavoriteView()"><i class="fas fa-star"></i> My List</div>
+    <div id="allBtnTab" class="active-tab" onclick="showAllList()"><i class="fas fa-list"></i> All List</div>
+    <div id="favBtnTab" onclick="showFavList()"><i class="fas fa-star"></i> My List</div>
     <div onclick="window.open('https://t.me/bestiptvlive')"><i class="fab fa-telegram-plane"></i> Telegram</div>
 </div>
 
@@ -110,7 +101,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), audioAnim=document.getElementById('audioAnim');
 let hls=new Hls(), allChannels=[], isFavView=false, currentPlayingUrl = '', brightness = 1, hideTimeout;
 
-// ২৫টি স্টাইলিশ বার তৈরি
+// ভিজ্যুয়ালাইজার বার তৈরি
 for(let i=0; i<25; i++) {
     let bar = document.createElement('div');
     bar.className = 'v-bar';
@@ -142,23 +133,18 @@ playerArea.addEventListener('touchmove', e => {
 });
 playerArea.addEventListener('touchend', () => setTimeout(() => document.getElementById('hud').style.display='none', 500));
 
-// --- প্লে ও লিস্ট লজিক ---
+// --- প্লে ও রেন্ডার ---
 function play(url, name, logo) {
     currentPlayingUrl = url;
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
     const isAudio = !url.includes('m3u8') || url.includes('radio') || url.includes('icecast');
-    
     audioAnim.style.display = isAudio ? 'flex' : 'none';
-    document.getElementById('mediaType').innerText = isAudio ? 'FM RADIO' : 'LIVE TV';
-
     if (url.includes('m3u8') && Hls.isSupported()) {
         hls.destroy(); hls = new Hls();
         hls.loadSource(url); hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    } else {
-        hls.destroy(); video.src = url; video.play().catch(() => {});
-    }
+    } else { hls.destroy(); video.src = url; video.play().catch(() => {}); }
     document.getElementById('pp').className = "fas fa-pause";
     render(); 
 }
@@ -167,30 +153,30 @@ function render() {
     let arr = isFavView ? JSON.parse(localStorage.getItem('my_iptv_favs') || "[]") : allChannels;
     listArea.innerHTML = "";
     document.getElementById('count').innerText = arr.length + " CH";
-    
     arr.forEach(ch => {
         const favs = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
         const isF = favs.some(f => f.url === ch.url);
         const d = document.createElement('div');
         d.className = `row ${(currentPlayingUrl === ch.url) ? 'active' : ''}`;
-        d.innerHTML = `<img src="${ch.logo}" style="width:45px; height:45px; border-radius:10px; object-fit:cover;" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div style="flex:1; font-weight:500;">${ch.name}</div><i class="fas fa-star star-btn ${isF ? 'is-fav' : ''}"></i>`;
+        d.innerHTML = `<img src="${ch.logo}" style="width:45px; height:45px; border-radius:10px; object-fit:cover;"><div style="flex:1; font-weight:500;">${ch.name}</div><i class="fas fa-star star-btn ${isF ? 'is-fav' : ''}"></i>`;
         d.onclick = () => play(ch.url, ch.name, ch.logo);
         d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFav(ch); };
         listArea.appendChild(d);
     });
 }
 
-// ফিক্সড ফেভারিট ভিউ: এটি এখন আর অন্য পেজে পাঠাবে না
-function toggleFavoriteView() {
-    isFavView = !isFavView;
-    const btn = document.getElementById('favBtnTab');
-    if(isFavView) {
-        btn.classList.add('active-tab');
-        btn.innerHTML = '<i class="fas fa-list"></i> All List'; // অল লিস্টে যাওয়ার অপশন
-    } else {
-        btn.classList.remove('active-tab');
-        btn.innerHTML = '<i class="fas fa-star"></i> My List';
-    }
+// --- নেভিগেশন ফাংশন ---
+function showAllList() {
+    isFavView = false;
+    document.getElementById('allBtnTab').classList.add('active-tab');
+    document.getElementById('favBtnTab').classList.remove('active-tab');
+    render();
+}
+
+function showFavList() {
+    isFavView = true;
+    document.getElementById('favBtnTab').classList.add('active-tab');
+    document.getElementById('allBtnTab').classList.remove('active-tab');
     render();
 }
 
@@ -202,40 +188,20 @@ function toggleFav(ch) {
     render();
 }
 
-// --- মেনু ও কন্ট্রোলস ---
+// --- কন্ট্রোলস ---
 playerArea.onclick = () => {
-    if(popMenu.style.display === 'flex') { popMenu.style.display = 'none'; return; }
     controls.classList.toggle('show');
     clearTimeout(hideTimeout);
-    if(controls.classList.contains('show')) hideTimeout = setTimeout(() => { controls.classList.remove('show'); popMenu.style.display = 'none'; }, 4000);
+    if(controls.classList.contains('show')) hideTimeout = setTimeout(() => controls.classList.remove('show'), 4000);
 };
 
-function showScalingMenu(e) {
-    e.stopPropagation();
-    popMenu.innerHTML = `<button onclick="setScaling('contain', event)">Fit Screen</button><button onclick="setScaling('cover', event)">Fill Screen</button><button onclick="setScaling('fill', event)">Zoom Screen</button>`;
-    let rect = document.getElementById('btnScale').getBoundingClientRect();
-    popMenu.style.left = Math.max(10, rect.left - 80) + "px"; popMenu.style.display = 'flex';
-}
-
-function showQualityMenu(e) {
-    e.stopPropagation();
-    popMenu.innerHTML = `<button onclick="setQuality(-1, event)">Auto Quality</button>`;
-    if (hls && hls.levels.length > 0) hls.levels.forEach((l, i) => { popMenu.innerHTML += `<button onclick="setQuality(${i}, event)">${l.height}p</button>`; });
-    let rect = document.getElementById('btnQuality').getBoundingClientRect();
-    popMenu.style.left = Math.max(10, rect.left - 80) + "px"; popMenu.style.display = 'flex';
-}
+function togglePlay(e) { e.stopPropagation(); video.paused ? (video.play(), document.getElementById('pp').className="fas fa-pause") : (video.pause(), document.getElementById('pp').className="fas fa-play"); }
 
 async function toggleFull(e) {
     e.stopPropagation();
-    if (!document.fullscreenElement) {
-        if (playerArea.requestFullscreen) await playerArea.requestFullscreen();
-    } else { document.exitFullscreen(); }
+    if (!document.fullscreenElement) playerArea.requestFullscreen();
+    else document.exitFullscreen();
 }
-
-function setScaling(m, e) { e.stopPropagation(); video.style.objectFit = m; popMenu.style.display = 'none'; }
-function setQuality(i, e) { e.stopPropagation(); hls.currentLevel = i; popMenu.style.display = 'none'; }
-function togglePlay(e) { e.stopPropagation(); video.paused ? (video.play(), document.getElementById('pp').className="fas fa-pause") : (video.pause(), document.getElementById('pp').className="fas fa-play"); }
-function copyShareLink() { navigator.clipboard.writeText(location.href); alert("Copied!"); }
 
 // প্লেলিস্ট লোড
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
