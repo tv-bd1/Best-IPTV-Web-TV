@@ -16,48 +16,34 @@ body {
     height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
 }
 
-/* PLAYER AREA - Restricted Container */
+/* PLAYER AREA - Fixed Aspect Ratio */
 .player-wrap { 
     position: relative; width: 100%; background: #000; 
     display: flex; align-items: center; justify-content: center; 
     aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden;
 }
-.player-wrap:fullscreen { width: 100vw; height: 100vh; aspect-ratio: auto; }
+video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
+#visualizer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; display: none; }
 
-video { width: 100%; height: 100%; object-fit: contain; z-index: 1; position: relative; }
-
-/* Visualizer - HD & Clean */
-#visualizer { 
-    position: absolute; inset: 0; width: 100%; height: 100%; 
-    z-index: 2; pointer-events: none; display: none; background: radial-gradient(circle, #0a0a0a, #000);
-}
-
+/* CONTROLS & QUALITY MENU */
 .controls-overlay { 
-    position: absolute; inset: 0; background: rgba(0,0,0,0.3); 
+    position: absolute; inset: 0; background: rgba(0,0,0,0.5); 
     opacity: 0; visibility: hidden; transition: 0.3s; z-index: 15; 
     display: flex; flex-direction: column; justify-content: flex-end; 
 }
 .controls-overlay.show { opacity: 1; visibility: visible; }
-
-/* QUALITY MENU - Locked Inside Player */
-.quality-menu { 
-    position: absolute; top: 10px; right: 10px; 
-    background: rgba(0, 0, 0, 0.85); border: 1.5px solid var(--accent); 
-    border-radius: 10px; display: none; flex-direction: column; 
-    z-index: 100; min-width: 120px; backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-}
-.quality-menu button { 
-    background: none; border: none; color: white; padding: 12px; 
-    cursor: pointer; border-bottom: 1px solid #333; font-weight: 500;
-}
-.quality-menu button:last-child { border: none; }
-.quality-menu button:hover { background: var(--accent); color: #000; }
-
-.bottom-bar { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,1)); display: flex; align-items: center; justify-content: space-between; }
+.bottom-bar { padding: 10px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; justify-content: space-between; }
 .mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
-.mini-btns i, .right-side i { font-size: 1.4rem; cursor: pointer; color: #fff; }
+.mini-btns i, .right-side i { font-size: 1.2rem; cursor: pointer; color: #fff; }
 
+.quality-menu { 
+    position: absolute; bottom: 60px; right: 15px; background: rgba(20,20,20,0.95); 
+    border: 1px solid var(--accent); border-radius: 8px; display: none; 
+    flex-direction: column; z-index: 20; min-width: 100px;
+}
+.quality-menu button { background: none; border: none; color: white; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; }
+
+/* INFO & ACTIONS - No Double Rendering */
 .info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
 .channel-meta { display: flex; align-items: center; gap: 10px; }
 .mini-logo { width: 42px; height: 42px; border-radius: 8px; object-fit: contain; background: #111; border: 1px solid #222; }
@@ -67,6 +53,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 1; position: re
 .actions i { display: block; font-size: 1.3rem; margin-bottom: 5px; color: #fff; }
 .active-tab, .active-tab i { color: var(--accent) !important; }
 
+/* CHANNEL LIST - Full Screen Coverage */
 .list { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg); }
 .row { display: flex; align-items: center; gap: 12px; background: var(--card); padding: 10px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; cursor: pointer; }
 .row.active { border-color: var(--accent); background: #0d2233; }
@@ -82,23 +69,22 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 1; position: re
 </head>
 <body>
 
-<div class="player-wrap" id="playerArea">
+<div class="player-wrap" id="playerArea" onclick="handleControlToggle()">
     <div class="loader" id="loader"></div>
-    <video id="video" playsinline crossorigin="anonymous" onclick="handleControlToggle()"></video>
     <canvas id="visualizer"></canvas>
-    
-    <div class="controls-overlay" id="controls" onclick="handleControlToggle()">
-        <div class="quality-menu" id="qualityMenu" onclick="event.stopPropagation()"></div>
-        
-        <div class="bottom-bar" onclick="event.stopPropagation()">
+    <video id="video" playsinline crossorigin="anonymous"></video>
+    <div class="quality-menu" id="qualityMenu"></div>
+
+    <div class="controls-overlay" id="controls">
+        <div class="bottom-bar">
             <div class="mini-btns">
-                <i class="fas fa-play" id="pp" onclick="togglePlay()"></i>
-                <i class="fas fa-redo" onclick="location.reload()"></i>
+                <i class="fas fa-play" id="pp" onclick="event.stopPropagation(); togglePlay()"></i>
+                <i class="fas fa-redo" onclick="event.stopPropagation(); location.reload()"></i>
             </div>
             <div class="right-side">
-                <i class="fas fa-cog" onclick="toggleQualityMenu()"></i>
-                <i class="fas fa-volume-up" id="vBtn" onclick="toggleMute()"></i>
-                <i class="fas fa-expand" onclick="toggleFull()"></i>
+                <i class="fas fa-cog" onclick="event.stopPropagation(); toggleQualityMenu()"></i>
+                <i class="fas fa-volume-up" id="vBtn" onclick="event.stopPropagation(); toggleMute()"></i>
+                <i class="fas fa-expand" onclick="event.stopPropagation(); toggleFull()"></i>
             </div>
         </div>
     </div>
@@ -125,11 +111,14 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 1; position: re
 <div id="toast"></div>
 
 <script>
-const video=document.getElementById('video'), loader=document.getElementById('loader'), canvas=document.getElementById('visualizer'), ctx=canvas.getContext('2d'), listArea=document.getElementById('list'), pp=document.getElementById('pp'), controls=document.getElementById('controls'), qualityMenu=document.getElementById('qualityMenu'), playerArea=document.getElementById('playerArea');
+const video=document.getElementById('video'), loader=document.getElementById('loader'), canvas=document.getElementById('visualizer'), ctx=canvas.getContext('2d'), listArea=document.getElementById('list'), pp=document.getElementById('pp'), controls=document.getElementById('controls'), qualityMenu=document.getElementById('qualityMenu');
 
 let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, audioCtx, analyser, source, dataArray;
 
-// Visualizer HD Draw
+function copyShareLink() {
+    navigator.clipboard.writeText("https://bestiptv.rf.gd/").then(() => showToast("Link Copied!"));
+}
+
 function initVisualizer() {
     if (audioCtx) return;
     try {
@@ -137,7 +126,7 @@ function initVisualizer() {
         analyser = audioCtx.createAnalyser();
         source = audioCtx.createMediaElementSource(video);
         source.connect(analyser); analyser.connect(audioCtx.destination);
-        analyser.fftSize = 256; dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.fftSize = 64; dataArray = new Uint8Array(analyser.frequencyBinCount);
         draw();
     } catch(e) {}
 }
@@ -147,28 +136,59 @@ function draw() {
     if(!analyser) return;
     analyser.getByteFrequencyData(dataArray);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
     let barWidth = (canvas.width / dataArray.length) * 2;
     let x = 0;
     for(let i=0; i<dataArray.length; i++) {
-        let barHeight = (dataArray[i]/255) * canvas.height * 0.7;
-        let r = 0, g = 229, b = 255; 
-        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.8)`;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = var(--accent);
-        ctx.fillRect(x, canvas.height - barHeight, barWidth - 1, barHeight);
+        let barHeight = (dataArray[i]/255) * canvas.height;
+        ctx.fillStyle = "rgba(0, 229, 255, 0.8)";
+        ctx.fillRect(x, canvas.height - barHeight, barWidth - 4, barHeight);
         x += barWidth;
     }
 }
 
-// Logic to show visualizer ONLY for audio-only streams
-video.addEventListener('loadedmetadata', () => {
-    if (video.videoWidth === 0 || video.videoHeight === 0) {
-        canvas.style.display = "block"; // অডিও চ্যানেল হলে দেখাবে
-    } else {
-        canvas.style.display = "none"; // ভিডিও থাকলে বন্ধ থাকবে
-    }
-});
+video.onloadedmetadata = () => {
+    canvas.style.display = (video.videoHeight === 0) ? "block" : "none";
+};
+
+const getFavs = () => JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
+
+function render(arr) {
+    listArea.innerHTML = "";
+    document.getElementById('count').innerText = arr.length + " CH";
+    const favs = getFavs();
+    arr.forEach(ch => {
+        const isFav = favs.some(f => f.url === ch.url);
+        const d = document.createElement('div');
+        d.className = `row ${video.src === ch.url ? 'active' : ''}`;
+        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div><i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}"></i>`;
+        d.onclick = () => play(ch.url, ch.name, ch.logo);
+        d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(ch); };
+        listArea.appendChild(d);
+    });
+}
+
+function toggleFavorite(ch) {
+    let favs = getFavs();
+    const idx = favs.findIndex(f => f.url === ch.url);
+    (idx > -1) ? favs.splice(idx, 1) : favs.push(ch);
+    localStorage.setItem('my_iptv_favs', JSON.stringify(favs));
+    render(isFavView ? favs : allChannels);
+}
+
+function toggleFavoriteView() {
+    isFavView = !isFavView;
+    document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
+    render(isFavView ? getFavs() : allChannels);
+}
+
+function setupQualityLevels() {
+    qualityMenu.innerHTML = `<button onclick="setQuality(-1)">Auto</button>`;
+    hls.levels.forEach((l, i) => {
+        qualityMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p</button>`;
+    });
+}
+
+function setQuality(idx) { hls.currentLevel = idx; qualityMenu.style.display = "none"; }
 
 function play(url, name, logo) {
     initVisualizer();
@@ -188,70 +208,18 @@ function play(url, name, logo) {
     pp.className = "fas fa-pause";
 }
 
-function toggleQualityMenu() { 
-    qualityMenu.style.display = qualityMenu.style.display === "flex" ? "none" : "flex"; 
-}
-
-function setupQualityLevels() {
-    qualityMenu.innerHTML = `<button onclick="setQuality(-1)">Auto Mode</button>`;
-    hls.levels.forEach((l, i) => {
-        qualityMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p</button>`;
-    });
-}
-
-function setQuality(idx) { hls.currentLevel = idx; qualityMenu.style.display = "none"; showToast("Quality Changed"); }
-
 function handleControlToggle() { 
     controls.classList.toggle('show');
     clearTimeout(hideTimeout);
-    if(controls.classList.contains('show')) hideTimeout = setTimeout(() => {
-        controls.classList.remove('show');
-        qualityMenu.style.display = "none";
-    }, 4000);
+    if(controls.classList.contains('show')) hideTimeout = setTimeout(() => controls.classList.remove('show'), 4000);
 }
 
+function toggleQualityMenu() { qualityMenu.style.display = qualityMenu.style.display === "flex" ? "none" : "flex"; }
 function togglePlay() { video.paused ? (video.play(), pp.className="fas fa-pause") : (video.pause(), pp.className="fas fa-play"); }
 function toggleMute() { video.muted = !video.muted; document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up"; }
-function toggleFull() { 
-    if(!document.fullscreenElement) {
-        playerArea.requestFullscreen().then(() => {
-            if(screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{});
-        });
-    } else {
-        document.exitFullscreen();
-    }
-}
-
-// REST OF THE FUNCTIONS (Favorite, Render, etc.) remain same as original logic
-const getFavs = () => JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
-function render(arr) {
-    listArea.innerHTML = "";
-    document.getElementById('count').innerText = arr.length + " CH";
-    const favs = getFavs();
-    arr.forEach(ch => {
-        const isFav = favs.some(f => f.url === ch.url);
-        const d = document.createElement('div');
-        d.className = `row ${video.src === ch.url ? 'active' : ''}`;
-        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div><i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}"></i>`;
-        d.onclick = () => play(ch.url, ch.name, ch.logo);
-        d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(ch); };
-        listArea.appendChild(d);
-    });
-}
-function toggleFavorite(ch) {
-    let favs = getFavs();
-    const idx = favs.findIndex(f => f.url === ch.url);
-    (idx > -1) ? favs.splice(idx, 1) : favs.push(ch);
-    localStorage.setItem('my_iptv_favs', JSON.stringify(favs));
-    render(isFavView ? favs : allChannels);
-}
-function toggleFavoriteView() {
-    isFavView = !isFavView;
-    document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
-    render(isFavView ? getFavs() : allChannels);
-}
-function copyShareLink() { navigator.clipboard.writeText(location.href).then(() => showToast("Link Copied!")); }
+function toggleFull() { document.fullscreenElement ? document.exitFullscreen() : playerArea.requestFullscreen(); }
 function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
+
 video.onplaying = () => loader.style.display="none";
 
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
