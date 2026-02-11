@@ -159,7 +159,7 @@ https://cloudfrontnet.vercel.app/tplay/playout/209618/master.m3u8
 ## India Bangla ##
 ------------------
 #EXTINF:-1 tvg-logo="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3W9qiYW7toPvoJs-jvG0zhxuFFp1EQq1OfHnMWGVQSzeH3bXz78Md696q&s=10" group-title="Kolkata", STAR JALSHA HD
-http://cdnd.sonyplex.com:8090/hls/StarJalshaHD.m3u8
+https://padmaonline.duckdns.org:8088/T-SportHD/index.m3u8
 #EXTINF:-1 tvg-logo="https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Star_Jalsha_logo_2023.png/640px-Star_Jalsha_logo_2023.png" group-title="Kolkata", STAR JALSHA
 https://catchup.yuppcdn.net/amazonv2/36/preview/starjalsha/master/chunklist.m3u8
 #EXTINF:-1 tvg-logo="https://banner2.cleanpng.com/20180623/qf/aazug0foc.webp" group-title="Kolkata", JALSHA MOVIES HD
