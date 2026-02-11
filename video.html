@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Ultimate IPTV & Radio Player PRO</title>
+<title>Premium IPTV & Radio Player</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
@@ -16,46 +16,42 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 .player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; }
 video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none; }
 
-/* FULL SCREEN AUDIO VISUALIZER */
+/* --- NEW MODERN AUDIO VISUALIZER --- */
 #audioAnim {
     position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
-    background: radial-gradient(circle, #1a1a1a 0%, #000 100%); z-index: 4;
+    background: radial-gradient(circle at center, #111 0%, #000 100%); z-index: 4;
 }
-.bar-container { display: flex; align-items: flex-end; gap: 6px; height: 50%; }
-.bar { width: 10px; background: var(--accent); animation: bounce 1s ease-in-out infinite; border-radius: 5px; box-shadow: 0 0 15px var(--accent); }
-@keyframes bounce { 0%, 100% { height: 15px; } 50% { height: 100%; } }
-.bar:nth-child(2) { animation-delay: 0.2s; } .bar:nth-child(3) { animation-delay: 0.4s; }
-.bar:nth-child(4) { animation-delay: 0.1s; } .bar:nth-child(5) { animation-delay: 0.3s; }
+.visualizer-container { display: flex; align-items: center; gap: 8px; height: 100px; }
+.v-bar { width: 8px; height: 20px; background: var(--accent); border-radius: 50px; animation: wave 1.2s ease-in-out infinite; box-shadow: 0 0 20px var(--accent); }
+@keyframes wave {
+    0%, 100% { height: 20px; transform: scaleY(1); opacity: 0.6; }
+    50% { height: 80px; transform: scaleY(1.4); opacity: 1; }
+}
+.v-bar:nth-child(1) { animation-delay: 0.1s; } .v-bar:nth-child(2) { animation-delay: 0.3s; }
+.v-bar:nth-child(3) { animation-delay: 0.5s; } .v-bar:nth-child(4) { animation-delay: 0.2s; }
+.v-bar:nth-child(5) { animation-delay: 0.4s; }
 
-/* HUD (Swipe UI) */
-#hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); color: white; padding: 20px; border-radius: 20px; z-index: 200; display: none; text-align: center; min-width: 110px; border: 1px solid rgba(255,255,255,0.1); }
-#hud i { display: block; font-size: 2rem; margin-bottom: 8px; color: var(--accent); }
+/* --- HUD (আগের মাঝখানের বক্স স্টাইল) --- */
+#hud { 
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px);
+    color: white; padding: 20px 30px; border-radius: 20px; z-index: 200; 
+    display: none; text-align: center; pointer-events: none; min-width: 120px; 
+    border: 1px solid rgba(255,255,255,0.1);
+}
+#hud i { display: block; font-size: 2.5rem; margin-bottom: 10px; color: var(--accent); }
 
 /* CONTROLS */
 .controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.3); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 100; display: flex; flex-direction: column; justify-content: flex-end; }
 .controls-overlay.show { opacity: 1; visibility: visible; }
-.bottom-bar { padding: 10px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-between; align-items: center; position: relative; }
+.bottom-bar { padding: 10px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-between; align-items: center; }
 .mini-btns i, .right-side i { font-size: 1.3rem; cursor: pointer; color: #fff; padding: 10px; }
 
-/* FIXED POPUP MENU POSITIONING */
-.pop-menu { 
-    position: absolute; 
-    bottom: 55px; /* বাটনের ঠিক উপরে থাকবে */
-    background: rgba(0, 0, 0, 0.85); 
-    backdrop-filter: blur(15px); 
-    border: 1px solid rgba(255, 255, 255, 0.15); 
-    border-radius: 12px; 
-    display: none; 
-    flex-direction: column; 
-    z-index: 150; 
-    min-width: 140px; 
-    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    overflow: hidden;
-}
-.pop-menu button { background: none; border: none; color: #fff; padding: 12px 15px; cursor: pointer; text-align: left; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.pop-menu button:last-child { border-bottom: none; }
+/* POPUP MENU */
+.pop-menu { position: absolute; bottom: 65px; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; display: none; flex-direction: column; z-index: 150; min-width: 150px; overflow: hidden; }
+.pop-menu button { background: none; border: none; color: #fff; padding: 12px 18px; cursor: pointer; text-align: left; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
 
-/* UI ELEMENTS */
+/* UI */
 .info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; }
 .actions { display: flex; padding: 15px 0; background: #050505; border-bottom: 1px solid #1a1a1a; }
 .actions div { flex: 1; text-align: center; font-size: 0.85rem; color: #bbb; cursor: pointer; }
@@ -63,18 +59,24 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 .row { display: flex; align-items: center; gap: 12px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; }
 .row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.05); }
 .star-btn.is-fav { color: var(--fav); }
-#toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 8px 18px; border-radius: 20px; display: none; z-index: 1000; font-weight: bold; }
 </style>
 </head>
 <body>
 
 <div class="player-wrap" id="playerArea">
-    <div id="audioAnim"><div class="bar-container"><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div></div></div>
+    <div id="audioAnim">
+        <div class="visualizer-container">
+            <div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div>
+        </div>
+    </div>
+    
     <div id="hud"><i id="hudIcon"></i><span id="hudValue">0%</span></div>
+    
     <video id="video" playsinline crossorigin="anonymous"></video>
     
     <div class="controls-overlay" id="controls">
-        <div class="pop-menu" id="popMenu"></div> <div class="bottom-bar">
+        <div class="pop-menu" id="popMenu"></div>
+        <div class="bottom-bar">
             <div style="display:flex; gap:10px;"><i class="fas fa-play" id="pp" onclick="togglePlay(event)"></i><i class="fas fa-redo" onclick="location.reload()"></i></div>
             <div style="display:flex; gap:10px;" class="right-side">
                 <i class="fas fa-sliders-h" id="btnScale" onclick="showScalingMenu(event)"></i>
@@ -100,48 +102,12 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 </div>
 
 <div class="list" id="list"></div>
-<div id="toast"></div>
 
 <script>
 const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), audioAnim=document.getElementById('audioAnim');
 let hls=new Hls(), allChannels=[], isFavView=false, startY, startVal, isLeft, hideTimeout, brightness = 1;
 
-// --- মেনু পজিশন ফিক্স ---
-function openMenu(targetBtnId) {
-    const btn = document.getElementById(targetBtnId);
-    const rect = btn.getBoundingClientRect();
-    const playerRect = playerArea.getBoundingClientRect();
-    
-    // বাটন এর পজিশন অনুযায়ী মেনুকে সেট করা
-    let leftPos = rect.left - playerRect.left - 50;
-    if (leftPos + 150 > playerRect.width) leftPos = playerRect.width - 160;
-    if (leftPos < 10) leftPos = 10;
-
-    popMenu.style.left = leftPos + "px";
-    popMenu.style.display = 'flex';
-}
-
-function showScalingMenu(e) {
-    e.stopPropagation();
-    popMenu.innerHTML = `<button onclick="setScaling('contain', event)">Fit Screen</button>
-                         <button onclick="setScaling('cover', event)">Fill Screen</button>
-                         <button onclick="setScaling('fill', event)">Zoom Screen</button>`;
-    openMenu('btnScale');
-}
-
-function showQualityMenu(e) {
-    e.stopPropagation();
-    popMenu.innerHTML = `<button onclick="setQuality(-1, event)">Auto Quality</button>`;
-    if (hls && hls.levels.length > 0) {
-        hls.levels.forEach((l, i) => { popMenu.innerHTML += `<button onclick="setQuality(${i}, event)">${l.height}p</button>`; });
-    }
-    openMenu('btnQuality');
-}
-
-function setScaling(m, e) { e.stopPropagation(); video.style.objectFit = m; popMenu.style.display = 'none'; }
-function setQuality(i, e) { e.stopPropagation(); hls.currentLevel = i; popMenu.style.display = 'none'; }
-
-// --- সোয়াইপ কন্ট্রোল (স্মুথ) ---
+// --- সোয়াইপ কন্ট্রোল (আগের মাঝখানের বক্স স্টাইল) ---
 playerArea.addEventListener('touchstart', e => {
     startY = e.touches[0].clientY;
     isLeft = e.touches[0].clientX < playerArea.clientWidth / 2;
@@ -172,19 +138,6 @@ playerArea.addEventListener('touchend', () => {
     setTimeout(() => document.getElementById('hud').style.display='none', 500);
 });
 
-// --- ফুলস্ক্রিন ও রোটেশন ---
-async function toggleFull(e) {
-    e.stopPropagation();
-    if (!document.fullscreenElement) {
-        if (playerArea.requestFullscreen) await playerArea.requestFullscreen();
-        video.style.objectFit = 'fill';
-        if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape').catch(()=>{});
-    } else {
-        if (document.exitFullscreen) await document.exitFullscreen();
-        video.style.objectFit = 'contain';
-    }
-}
-
 // --- প্লে লজিক ---
 function play(url, name, logo) {
     document.getElementById('title').innerText = name;
@@ -204,6 +157,19 @@ function play(url, name, logo) {
     render();
 }
 
+// --- ফুলস্ক্রিন ও কন্ট্রোলস ---
+async function toggleFull(e) {
+    e.stopPropagation();
+    if (!document.fullscreenElement) {
+        if (playerArea.requestFullscreen) await playerArea.requestFullscreen();
+        video.style.objectFit = 'fill';
+        if (screen.orientation && screen.orientation.lock) await screen.orientation.lock('landscape').catch(()=>{});
+    } else {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        video.style.objectFit = 'contain';
+    }
+}
+
 playerArea.onclick = () => {
     if(popMenu.style.display === 'flex') { popMenu.style.display = 'none'; return; }
     controls.classList.toggle('show');
@@ -213,16 +179,43 @@ playerArea.onclick = () => {
     }
 };
 
+function showScalingMenu(e) {
+    e.stopPropagation();
+    popMenu.innerHTML = `<button onclick="setScaling('contain', event)">Fit Screen</button>
+                         <button onclick="setScaling('cover', event)">Fill Screen</button>
+                         <button onclick="setScaling('fill', event)">Zoom Screen</button>`;
+    const rect = document.getElementById('btnScale').getBoundingClientRect();
+    const playerRect = playerArea.getBoundingClientRect();
+    popMenu.style.left = Math.max(10, rect.left - playerRect.left - 60) + "px";
+    popMenu.style.display = 'flex';
+}
+
+function showQualityMenu(e) {
+    e.stopPropagation();
+    popMenu.innerHTML = `<button onclick="setQuality(-1, event)">Auto Quality</button>`;
+    if (hls && hls.levels.length > 0) {
+        hls.levels.forEach((l, i) => { popMenu.innerHTML += `<button onclick="setQuality(${i}, event)">${l.height}p</button>`; });
+    }
+    const rect = document.getElementById('btnQuality').getBoundingClientRect();
+    const playerRect = playerArea.getBoundingClientRect();
+    popMenu.style.left = Math.max(10, rect.left - playerRect.left - 60) + "px";
+    popMenu.style.display = 'flex';
+}
+
+function setScaling(m, e) { e.stopPropagation(); video.style.objectFit = m; popMenu.style.display = 'none'; }
+function setQuality(i, e) { e.stopPropagation(); hls.currentLevel = i; popMenu.style.display = 'none'; }
+function togglePlay(e) { e.stopPropagation(); video.paused ? (video.play(), document.getElementById('pp').className="fas fa-pause") : (video.pause(), document.getElementById('pp').className="fas fa-play"); }
+
 function render() {
-    let arr = isFavView ? JSON.parse(localStorage.getItem('my_iptv_favs') || "[]") : allChannels;
+    let arr = isFavView ? JSON.parse(localStorage.getItem('my_favs') || "[]") : allChannels;
     listArea.innerHTML = "";
     document.getElementById('count').innerText = arr.length + " CH";
     arr.forEach(ch => {
-        const favs = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
+        const favs = JSON.parse(localStorage.getItem('my_favs') || "[]");
         const isF = favs.some(f => f.url === ch.url);
         const d = document.createElement('div');
         d.className = `row ${(video.src === ch.url || hls.url === ch.url) ? 'active' : ''}`;
-        d.innerHTML = `<img src="${ch.logo}" style="width:40px; height:40px; border-radius:8px; object-fit:cover;" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div style="flex:1; font-size:14px;">${ch.name}</div><i class="fas fa-star star-btn ${isF ? 'is-fav' : ''}"></i>`;
+        d.innerHTML = `<img src="${ch.logo}" style="width:40px; height:40px; border-radius:8px; object-fit:cover;" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div style="flex:1;">${ch.name}</div><i class="fas fa-star star-btn ${isF ? 'is-fav' : ''}"></i>`;
         d.onclick = () => play(ch.url, ch.name, ch.logo);
         d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFav(ch); };
         listArea.appendChild(d);
@@ -230,21 +223,15 @@ function render() {
 }
 
 function toggleFav(ch) {
-    let f = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
+    let f = JSON.parse(localStorage.getItem('my_favs') || "[]");
     let i = f.findIndex(x => x.url === ch.url);
     i > -1 ? f.splice(i, 1) : f.push(ch);
-    localStorage.setItem('my_iptv_favs', JSON.stringify(f));
+    localStorage.setItem('my_favs', JSON.stringify(f));
     render();
 }
 
-function toggleFavoriteView() {
-    isFavView = !isFavView;
-    document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
-    render();
-}
-
-function togglePlay(e) { e.stopPropagation(); video.paused ? (video.play(), document.getElementById('pp').className="fas fa-pause") : (video.pause(), document.getElementById('pp').className="fas fa-play"); }
-function copyShareLink() { navigator.clipboard.writeText(location.href); alert("Link Copied!"); }
+function toggleFavoriteView() { isFavView = !isFavView; document.getElementById('favBtnTab').style.color = isFavView ? '#00E5FF' : '#bbb'; render(); }
+function copyShareLink() { navigator.clipboard.writeText(location.href); alert("Copied!"); }
 
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
 if(playlistUrl) {
