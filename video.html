@@ -14,9 +14,9 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 
 /* PLAYER AREA */
 .player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden; }
-video { width: 100%; height: 100%; object-fit: contain; z-index: 2; pointer-events: none; }
+video { width: 100%; height: 100%; object-fit: contain; z-index: 2; pointer-events: none; transition: all 0.2s; }
 
-/* SWIPE HUD */
+/* HUD for Brightness/Volume */
 #hud {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     background: rgba(0,0,0,0.6); color: white; padding: 15px 25px;
@@ -31,19 +31,18 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 2; pointer-even
 .mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
 .mini-btns i, .right-side i { font-size: 1.3rem; cursor: pointer; color: #fff; }
 
-/* QUALITY/SCALING MENU */
+/* POPUP MENU */
 .pop-menu { 
     position: absolute; bottom: 65px; right: 15px; background: rgba(25,25,25,0.98); 
     border: 1px solid #333; border-radius: 12px; display: none; 
     flex-direction: column; z-index: 110; min-width: 140px; overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
 }
-.pop-menu button { background: none; border: none; color: white; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 14px; }
+.pop-menu button { background: none; border: none; color: white; padding: 12px 15px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; }
 .pop-menu button:hover { background: var(--accent); color: #000; }
 
 /* UI ELEMENTS */
 .info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; }
-.mini-logo { width: 42px; height: 42px; border-radius: 8px; object-fit: contain; background: #111; border: 1px solid #222; }
+.mini-logo { width: 42px; height: 42px; border-radius: 8px; object-fit: contain; background: #111; }
 .actions { display: flex; padding: 10px 0; background: #050505; border-bottom: 1px solid #1a1a1a; }
 .actions div { flex: 1; text-align: center; font-size: 0.75rem; color: #bbb; cursor: pointer; }
 .actions i { display: block; font-size: 1.3rem; margin-bottom: 5px; color: #fff; }
@@ -103,23 +102,33 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 2; pointer-even
 const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list');
 let hls=new Hls(), allChannels=[], isFavView=false, startY, startVal, isLeft, hideTimeout;
 
-// --- ১. ব্যাক বাটন ও ফেভারিট হ্যান্ডেলিং ---
-window.onpopstate = function() {
-    if (isFavView) {
-        isFavView = false;
-        document.getElementById('favBtnTab').classList.remove('active-tab');
-        render();
+// ১. অটো-রোটেশন ও ফুলস্ক্রিন ফিক্স
+function toggleFull() {
+    if (!document.fullscreenElement) {
+        playerArea.requestFullscreen().then(() => {
+            if (screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            }
+        });
+    } else {
+        document.exitFullscreen();
+        if (screen.orientation && screen.orientation.unlock) {
+            screen.orientation.unlock();
+        }
     }
-};
+}
 
-function toggleFavoriteView() {
+// ২. ব্যাক বাটন ও ফেভারিট লজিক
+window.onpopstate = () => isFavView && toggleFavoriteView(false);
+
+function toggleFavoriteView(push = true) {
     isFavView = !isFavView;
-    if(isFavView) history.pushState({view:'fav'}, "");
+    if(isFavView && push) history.pushState({v:'f'}, "");
     document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
     render();
 }
 
-// --- ২. সোয়াইপ কন্ট্রোল (Brightness & Volume) ---
+// ৩. সোয়াইপ কন্ট্রোল
 playerArea.addEventListener('touchstart', e => {
     startY = e.touches[0].clientY;
     isLeft = e.touches[0].clientX < playerArea.clientWidth / 2;
@@ -130,7 +139,6 @@ playerArea.addEventListener('touchmove', e => {
     e.preventDefault();
     let delta = (startY - e.touches[0].clientY) / 150;
     document.getElementById('hud').style.display = 'block';
-
     if(isLeft) {
         let b = Math.min(Math.max(startVal + delta, 0.3), 1.8);
         playerArea.style.filter = `brightness(${b})`;
@@ -144,10 +152,9 @@ playerArea.addEventListener('touchmove', e => {
         document.getElementById('hudValue').innerText = Math.round(v * 100) + "%";
     }
 });
-
 playerArea.addEventListener('touchend', () => setTimeout(()=> document.getElementById('hud').style.display='none', 500));
 
-// --- ৩. ভিডিও স্কেলিং ও কোয়ালিটি ---
+// ৪. ভিডিও স্কেলিং ও কোয়ালিটি
 function showScalingMenu() {
     popMenu.innerHTML = `
         <button onclick="setScaling('contain')">Fit Screen</button>
@@ -157,37 +164,30 @@ function showScalingMenu() {
     `;
     popMenu.style.display = 'flex';
 }
-
-function setScaling(type) {
-    video.style.objectFit = (type === '16/9' || type === 'fill') ? 'fill' : type;
-    video.style.aspectRatio = (type === '16/9') ? '16/9' : 'auto';
+function setScaling(t) {
+    video.style.objectFit = (t === '16/9' || t === 'fill') ? 'fill' : t;
+    video.style.aspectRatio = (t === '16/9') ? '16/9' : 'auto';
     popMenu.style.display = 'none';
-    showToast("Scaling: " + type);
+    showToast("Scaling: " + t);
 }
-
 function showQualityMenu() {
     popMenu.innerHTML = `<button onclick="setQuality(-1)">Auto</button>`;
-    hls.levels.forEach((l, i) => {
-        popMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p</button>`;
-    });
+    hls.levels.forEach((l, i) => popMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p</button>`);
     popMenu.style.display = 'flex';
 }
+function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
 
-function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; showToast("Quality Changed"); }
-
-// --- ৪. প্লেয়ার লজিক ---
+// ৫. প্লেয়ার কোর ফাংশন
 function play(url, name, logo) {
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
-    popMenu.style.display = 'none';
-    
     if(url.includes('.m3u8') && Hls.isSupported()){
         hls.destroy(); hls = new Hls();
         hls.loadSource(url); hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
     } else { video.src = url; video.play(); }
     document.getElementById('pp').className = "fas fa-pause";
-    render(); // হাইলাইট আপডেট
+    render();
 }
 
 function render() {
@@ -196,7 +196,7 @@ function render() {
     document.getElementById('count').innerText = arr.length + " CH";
     arr.forEach(ch => {
         const isFav = (JSON.parse(localStorage.getItem('my_iptv_favs') || "[]")).some(f => f.url === ch.url);
-        const active = video.src === ch.url || (hls.url === ch.url);
+        const active = video.src === ch.url || hls.url === ch.url;
         const d = document.createElement('div');
         d.className = `row ${active ? 'active' : ''}`;
         d.innerHTML = `<img src="${ch.logo}" class="mini-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div><i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}"></i>`;
@@ -207,14 +207,13 @@ function render() {
 }
 
 function toggleFav(ch) {
-    let favs = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
-    let i = favs.findIndex(f => f.url === ch.url);
-    i > -1 ? favs.splice(i, 1) : favs.push(ch);
-    localStorage.setItem('my_iptv_favs', JSON.stringify(favs));
+    let f = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
+    let i = f.findIndex(x => x.url === ch.url);
+    i > -1 ? f.splice(i, 1) : f.push(ch);
+    localStorage.setItem('my_iptv_favs', JSON.stringify(f));
     render();
 }
 
-// --- ৫. কন্ট্রোলস ও অন্যান্য ---
 playerArea.onclick = (e) => {
     if(e.target === playerArea || e.target === controls) {
         controls.classList.toggle('show');
@@ -225,7 +224,6 @@ playerArea.onclick = (e) => {
 };
 
 function togglePlay() { video.paused ? (video.play(), document.getElementById('pp').className="fas fa-pause") : (video.pause(), document.getElementById('pp').className="fas fa-play"); }
-function toggleFull() { document.fullscreenElement ? document.exitFullscreen() : playerArea.requestFullscreen(); }
 function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
 function copyShare() { navigator.clipboard.writeText(location.href); showToast("Link Copied!"); }
 
