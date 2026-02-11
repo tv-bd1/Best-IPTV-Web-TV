@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Ultimate IPTV Player PRO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
@@ -10,65 +10,151 @@
     <style>
         :root { --bg: #000; --card: #121212; --accent: #00E5FF; --fav: #FFD700; --text: #fff; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            height: 100vh; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            /* নোচ ডিসপ্লে এর সেফ এরিয়া হ্যান্ডলিং */
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
 
         /* PLAYER AREA */
-        .player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; overflow: hidden; }
-        video { width: 100%; height: 100%; object-fit: contain; }
-        /* জুম মোড যখন ফুলস্ক্রিন হবে */
-        video.zoom { object-fit: cover; } 
+        .player-wrap { 
+            position: relative; 
+            width: 100%; 
+            background: #000; 
+            aspect-ratio: 16/9; 
+            flex-shrink: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        /* CONTROLS */
-        .controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 15; display: flex; flex-direction: column; justify-content: flex-end; }
-        .controls-overlay.show { opacity: 1; visibility: visible; }
-        .bottom-bar { padding: 10px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; justify-content: space-between; }
-        .mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
-        .mini-btns i, .right-side i { font-size: 1.2rem; cursor: pointer; color: #fff; }
+        video { 
+            width: 100%; 
+            height: 100%; 
+            background: #000;
+            /* ডিফল্ট কন্টেইন, ফুলস্ক্রিনে জুম হবে */
+            object-fit: contain; 
+        }
 
-        .quality-menu { position: absolute; bottom: 60px; right: 15px; background: rgba(20,20,20,0.95); border: 1px solid var(--accent); border-radius: 8px; display: none; flex-direction: column; z-index: 20; min-width: 120px; max-height: 200px; overflow-y: auto; }
-        .quality-menu button { background: none; border: none; color: white; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; }
+        /* ফুলস্ক্রিন বা জুম মোড এর জন্য */
+        .zoom-mode { 
+            object-fit: cover !important; 
+        }
+
+        /* LOADER CENTER FIX */
+        .loader { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            width: 50px; 
+            height: 50px; 
+            border: 5px solid rgba(255,255,255,0.1); 
+            border-top: 5px solid var(--accent); 
+            border-radius: 50%; 
+            animation: spin 1s linear infinite; 
+            display: none; 
+            z-index: 20; 
+        }
+
+        /* QUALITY MENU FIX */
+        .quality-menu { 
+            position: absolute; 
+            bottom: 70px; 
+            right: 15px; 
+            background: rgba(15, 15, 15, 0.95); 
+            border: 1px solid var(--accent); 
+            border-radius: 10px; 
+            display: none; /* JS দিয়ে toggle হবে */
+            flex-direction: column; 
+            z-index: 100; 
+            min-width: 140px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .quality-menu button { 
+            background: none; 
+            border: none; 
+            color: white; 
+            padding: 12px; 
+            cursor: pointer; 
+            border-bottom: 1px solid #222; 
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
         .quality-menu button:hover { background: var(--accent); color: #000; }
 
-        /* INFO & ACTIONS */
-        .info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; }
-        .channel-meta { display: flex; align-items: center; gap: 10px; }
-        .mini-logo { width: 42px; height: 42px; border-radius: 8px; object-fit: contain; background: #111; }
+        /* CONTROLS */
+        .controls-overlay { 
+            position: absolute; 
+            inset: 0; 
+            background: rgba(0,0,0,0.4); 
+            opacity: 0; 
+            visibility: hidden; 
+            transition: 0.3s; 
+            z-index: 15; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: flex-end; 
+        }
+        .controls-overlay.show { opacity: 1; visibility: visible; }
 
+        .bottom-bar { 
+            padding: 15px; 
+            background: linear-gradient(transparent, rgba(0,0,0,0.9)); 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+        }
+
+        .mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
+        .mini-btns i, .right-side i { font-size: 1.3rem; cursor: pointer; color: #fff; text-shadow: 0 0 5px #000; }
+
+        /* LIST & INFO */
+        .info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; }
         .actions { display: flex; padding: 10px 0; background: #050505; border-bottom: 1px solid #1a1a1a; }
         .actions div { flex: 1; text-align: center; font-size: 0.75rem; color: #bbb; cursor: pointer; }
         .actions i { display: block; font-size: 1.3rem; margin-bottom: 5px; color: #fff; }
-        .active-tab { color: var(--accent) !important; }
-        .active-tab i { color: var(--accent) !important; }
+        .active-tab, .active-tab i { color: var(--accent) !important; }
 
-        /* LIST AREA */
-        .list { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg); }
+        .list { flex: 1; overflow-y: auto; padding: 12px; padding-bottom: 40px; background: var(--bg); }
         .row { display: flex; align-items: center; gap: 12px; background: var(--card); padding: 10px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; cursor: pointer; }
         .row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.1); }
-        .list-logo { width: 40px; height: 40px; border-radius: 8px; }
+        .list-logo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
         .name { flex: 1; font-size: 0.9rem; color: #fff; }
-        .star-btn { font-size: 1.1rem; color: #444; padding: 5px; }
+        .star-btn { font-size: 1.1rem; color: #444; }
         .star-btn.is-fav { color: var(--fav); }
 
-        .loader { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; display: none; z-index: 10; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; display: none; z-index: 1000; font-weight: bold; }
+        @keyframes spin { 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; display: none; z-index: 1000; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="player-wrap" id="playerArea">
     <div class="loader" id="loader"></div>
-    <video id="video" playsinline crossorigin="anonymous" onclick="handleControlToggle()"></video>
+    <video id="video" playsinline crossorigin="anonymous" onclick="toggleControls()"></video>
+    
     <div class="quality-menu" id="qualityMenu"></div>
 
-    <div class="controls-overlay" id="controls" onclick="handleControlToggle()">
+    <div class="controls-overlay" id="controls" onclick="toggleControls()">
         <div class="bottom-bar" onclick="event.stopPropagation()">
             <div class="mini-btns">
                 <i class="fas fa-play" id="pp" onclick="togglePlay()"></i>
                 <i class="fas fa-redo" onclick="location.reload()"></i>
             </div>
             <div class="right-side">
-                <i class="fas fa-cog" onclick="toggleQualityMenu()"></i>
+                <i class="fas fa-cog" id="cogBtn" onclick="toggleQualityMenu()"></i>
                 <i class="fas fa-volume-up" id="vBtn" onclick="toggleMute()"></i>
                 <i class="fas fa-expand" onclick="toggleFull()"></i>
             </div>
@@ -78,18 +164,17 @@
 
 <div class="info">
     <div class="channel-meta">
-        <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
+        <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png" style="width:40px; height:40px; border-radius:5px;">
         <div>
-            <h3 id="title" style="font-size: 1rem;">Select Channel</h3>
-            <small style="color:var(--accent); font-size:0.7rem;">LIVE STREAMING</small>
+            <h3 id="title" style="font-size: 0.95rem;">Select Channel</h3>
+            <small id="count" style="color:var(--accent);">0 Channels Available</small>
         </div>
     </div>
-    <div id="count" style="background:#1a1a1a; padding:4px 8px; border-radius:5px; font-size:12px; color:var(--accent)">0 CH</div>
 </div>
 
 <div class="actions">
-    <div id="allBtn" class="active-tab" onclick="showAllChannels()"><i class="fas fa-list"></i>All List</div>
-    <div id="favBtnTab" onclick="toggleFavoriteView()"><i class="fas fa-star"></i>My List</div>
+    <div id="allBtn" class="active-tab" onclick="switchTab('all')"><i class="fas fa-list"></i>All Channels</div>
+    <div id="favBtnTab" onclick="switchTab('fav')"><i class="fas fa-star"></i>My Favorites</div>
     <div onclick="window.open('https://t.me/bestiptvlive', '_blank')"><i class="fab fa-telegram-plane"></i>Telegram</div>
 </div>
 
@@ -97,16 +182,181 @@
 <div id="toast"></div>
 
 <script>
-const video = document.getElementById('video'), 
-      loader = document.getElementById('loader'), 
-      listArea = document.getElementById('list'), 
-      pp = document.getElementById('pp'), 
-      controls = document.getElementById('controls'), 
-      qualityMenu = document.getElementById('qualityMenu'), 
+const video = document.getElementById('video'),
+      loader = document.getElementById('loader'),
+      listArea = document.getElementById('list'),
+      pp = document.getElementById('pp'),
+      controls = document.getElementById('controls'),
+      qualityMenu = document.getElementById('qualityMenu'),
       playerArea = document.getElementById('playerArea');
 
 let hls = new Hls(), allChannels = [], isFavView = false, hideTimeout, currentPlayUrl = "";
 
+// --- FAVORITE SYSTEM ---
+const getFavs = () => JSON.parse(localStorage.getItem('iptv_favs') || "[]");
+const saveFavs = (favs) => localStorage.setItem('iptv_favs', JSON.stringify(favs));
+
+function toggleFavorite(ch) {
+    let favs = getFavs();
+    const index = favs.findIndex(f => f.url === ch.url);
+    if(index > -1) {
+        favs.splice(index, 1);
+        showToast("Removed from List");
+    } else {
+        favs.push(ch);
+        showToast("Added to List");
+    }
+    saveFavs(favs);
+    render(isFavView ? getFavs() : allChannels);
+}
+
+// --- RENDER LIST ---
+function render(arr) {
+    listArea.innerHTML = "";
+    document.getElementById('count').innerText = arr.length + " Channels Available";
+    const favs = getFavs();
+    
+    arr.forEach(ch => {
+        const isFav = favs.some(f => f.url === ch.url);
+        const isActive = currentPlayUrl === ch.url;
+        const d = document.createElement('div');
+        d.className = `row ${isActive ? 'active' : ''}`;
+        d.innerHTML = `
+            <img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
+            <div class="name">${ch.name}</div>
+            <i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}"></i>
+        `;
+        d.onclick = () => playChannel(ch);
+        d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(ch); };
+        listArea.appendChild(d);
+    });
+}
+
+function switchTab(type) {
+    isFavView = (type === 'fav');
+    document.getElementById('allBtn').classList.toggle('active-tab', !isFavView);
+    document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
+    render(isFavView ? getFavs() : allChannels);
+}
+
+// --- PLAYER ENGINE ---
+function playChannel(ch) {
+    currentPlayUrl = ch.url;
+    render(isFavView ? getFavs() : allChannels);
+    
+    document.getElementById('title').innerText = ch.name;
+    document.getElementById('currentLogo').src = ch.logo || "https://i.imgur.com/8Qf6Y0L.png";
+    
+    loader.style.display = "block";
+    qualityMenu.style.display = "none";
+
+    if (Hls.isSupported() && ch.url.includes('m3u8')) {
+        hls.destroy();
+        hls = new Hls();
+        hls.loadSource(ch.url);
+        hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+            video.play();
+            setupQualityLevels();
+        });
+        hls.on(Hls.Events.ERROR, () => loader.style.display = "none");
+    } else {
+        video.src = ch.url;
+        video.play().catch(() => loader.style.display = "none");
+    }
+    pp.className = "fas fa-pause";
+}
+
+// --- QUALITY MENU FIX ---
+function setupQualityLevels() {
+    const levels = hls.levels;
+    qualityMenu.innerHTML = '<button onclick="setQuality(-1)">✨ Auto Quality</button>';
+    levels.forEach((level, index) => {
+        const label = level.height ? level.height + "p" : "Level " + index;
+        qualityMenu.innerHTML += `<button onclick="setQuality(${index})">📺 ${label}</button>`;
+    });
+}
+
+function setQuality(idx) {
+    hls.currentLevel = idx;
+    qualityMenu.style.display = "none";
+    showToast("Quality Changed");
+}
+
+function toggleQualityMenu() {
+    qualityMenu.style.display = (qualityMenu.style.display === "flex") ? "none" : "flex";
+}
+
+// --- FULLSCREEN & NO-NOTCH FIX ---
+function toggleFull() {
+    if (!document.fullscreenElement) {
+        playerArea.requestFullscreen().catch(err => console.log(err));
+        video.classList.add('zoom-mode'); // নোচ ক্যামেরা এরিয়া কাভার করতে জুম
+    } else {
+        document.exitFullscreen();
+        video.classList.remove('zoom-mode');
+    }
+}
+
+// ফুলস্ক্রিন চেঞ্জ ডিটেক্ট করা
+document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) {
+        video.classList.remove('zoom-mode');
+    }
+});
+
+// --- CONTROLS ---
+function toggleControls() {
+    controls.classList.toggle('show');
+    clearTimeout(hideTimeout);
+    if(controls.classList.contains('show')) {
+        hideTimeout = setTimeout(() => controls.classList.remove('show'), 4000);
+    }
+}
+
+function togglePlay() {
+    if (video.paused) { video.play(); pp.className = "fas fa-pause"; }
+    else { video.pause(); pp.className = "fas fa-play"; }
+}
+
+function toggleMute() {
+    video.muted = !video.muted;
+    document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up";
+}
+
+function showToast(m) {
+    const t = document.getElementById('toast');
+    t.innerText = m; t.style.display = "block";
+    setTimeout(() => t.style.display = "none", 2000);
+}
+
+video.onplaying = () => loader.style.display = "none";
+video.onwaiting = () => loader.style.display = "block";
+
+// --- LOAD M3U ---
+const playlistUrl = new URLSearchParams(location.search).get('playlist');
+if(playlistUrl) {
+    fetch(playlistUrl).then(r => r.text()).then(data => {
+        let channels = [], c = {}, lines = data.split('\n');
+        lines.forEach(l => {
+            if(l.startsWith('#EXTINF')) {
+                c.name = l.split(',')[1]?.trim() || "Unknown";
+                const m = l.match(/tvg-logo="([^"]*)"/);
+                c.logo = m ? m[1] : "";
+            } else if(l.startsWith('http')) {
+                c.url = l.trim();
+                channels.push({...c});
+                c = {};
+            }
+        });
+        allChannels = channels;
+        render(allChannels);
+        if(allChannels.length > 0) playChannel(allChannels[0]);
+    });
+}
+</script>
+</body>
+</html>
 // --- FAVORITE SYSTEM ---
 function getFavs() { return JSON.parse(localStorage.getItem('my_iptv_favs') || "[]"); }
 
