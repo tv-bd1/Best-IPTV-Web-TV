@@ -16,7 +16,7 @@ body {
     height: 100vh; display: flex; flex-direction: column; overflow: hidden; 
 }
 
-/* PLAYER AREA - Fixed Aspect Ratio */
+/* PLAYER AREA */
 .player-wrap { 
     position: relative; width: 100%; background: #000; 
     display: flex; align-items: center; justify-content: center; 
@@ -25,7 +25,7 @@ body {
 video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
 #visualizer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; display: none; }
 
-/* CONTROLS & QUALITY MENU */
+/* CONTROLS */
 .controls-overlay { 
     position: absolute; inset: 0; background: rgba(0,0,0,0.5); 
     opacity: 0; visibility: hidden; transition: 0.3s; z-index: 15; 
@@ -53,10 +53,39 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
 .actions i { display: block; font-size: 1.3rem; margin-bottom: 5px; color: #fff; }
 .active-tab, .active-tab i { color: var(--accent) !important; }
 
-/* CHANNEL LIST */
-.list { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg); }
-.row { display: flex; align-items: center; gap: 12px; background: var(--card); padding: 10px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; cursor: pointer; }
-.row.active { border-color: var(--accent); background: #0d2233; }
+/* CHANNEL LIST - Improved Scannability */
+.list { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 12px; 
+    padding-bottom: 100px; /* নিচ পর্যন্ত ক্লিয়ার দেখতে এটি বাড়ানো হয়েছে */
+    background: var(--bg); 
+    -webkit-overflow-scrolling: touch;
+}
+.row { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    background: var(--card); 
+    padding: 10px; 
+    border-radius: 12px; 
+    margin-bottom: 10px; 
+    border: 1px solid #1a1a1a; 
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+/* রানিং চ্যানেল হাইলাইট */
+.row.active { 
+    border-color: var(--accent); 
+    background: rgba(0, 229, 255, 0.1); 
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+.row.active .name { 
+    color: var(--accent); 
+    font-weight: bold;
+}
+
 .list-logo { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; }
 .name { flex: 1; font-size: 0.9rem; font-weight: 500; color: #fff; }
 .star-btn { font-size: 1.1rem; color: #444; }
@@ -113,7 +142,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
 <script>
 const video=document.getElementById('video'), loader=document.getElementById('loader'), canvas=document.getElementById('visualizer'), ctx=canvas.getContext('2d'), listArea=document.getElementById('list'), pp=document.getElementById('pp'), controls=document.getElementById('controls'), qualityMenu=document.getElementById('qualityMenu'), playerArea=document.getElementById('playerArea');
 
-let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, audioCtx, analyser, source, dataArray;
+let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, audioCtx, analyser, source, dataArray, currentPlayUrl = "";
 
 function copyShareLink() {
     navigator.clipboard.writeText("https://bestiptv.rf.gd/").then(() => showToast("Link Copied!"));
@@ -146,10 +175,6 @@ function draw() {
     }
 }
 
-video.onloadedmetadata = () => {
-    canvas.style.display = (video.videoHeight === 0) ? "block" : "none";
-};
-
 const getFavs = () => JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
 
 function render(arr) {
@@ -158,8 +183,9 @@ function render(arr) {
     const favs = getFavs();
     arr.forEach(ch => {
         const isFav = favs.some(f => f.url === ch.url);
+        const isActive = currentPlayUrl === ch.url;
         const d = document.createElement('div');
-        d.className = `row ${video.src === ch.url ? 'active' : ''}`;
+        d.className = `row ${isActive ? 'active' : ''}`;
         d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div><i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}"></i>`;
         d.onclick = () => play(ch.url, ch.name, ch.logo);
         d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(ch); };
@@ -191,6 +217,9 @@ function setupQualityLevels() {
 function setQuality(idx) { hls.currentLevel = idx; qualityMenu.style.display = "none"; }
 
 function play(url, name, logo) {
+    currentPlayUrl = url; 
+    render(isFavView ? getFavs() : allChannels); // হাইলাইট আপডেট করতে পুনরায় রেন্ডার
+    
     initVisualizer();
     if(audioCtx?.state === 'suspended') audioCtx.resume();
     document.getElementById('title').innerText = name;
@@ -218,7 +247,7 @@ function toggleQualityMenu() { qualityMenu.style.display = qualityMenu.style.dis
 function togglePlay() { video.paused ? (video.play(), pp.className="fas fa-pause") : (video.pause(), pp.className="fas fa-play"); }
 function toggleMute() { video.muted = !video.muted; document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up"; }
 
-// অটো-রোটেট সহ আপডেট করা ফুলস্ক্রিন ফাংশন
+// অটো-রোটেট সহ ফুলস্ক্রিন ফাংশন
 function toggleFull() {
     if (!document.fullscreenElement) {
         playerArea.requestFullscreen().then(() => {
@@ -234,144 +263,6 @@ function toggleFull() {
     }
 }
 
-function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
-
-video.onplaying = () => loader.style.display="none";
-
-const playlistUrl = new URLSearchParams(location.search).get('playlist');
-if(playlistUrl) {
-    fetch(playlistUrl).then(r=>r.text()).then(data => {
-        let channels=[], c={}, lines=data.split('\n');
-        lines.forEach(l => {
-            if(l.startsWith('#EXTINF')){
-                c.name = l.split(',')[1]?.trim() || "Unknown";
-                const m = l.match(/tvg-logo="([^"]*)"/);
-                c.logo = m ? m[1] : "https://i.imgur.com/8Qf6Y0L.png";
-            } else if(l.startsWith('http')) {
-                c.url = l.trim(); channels.push({...c}); c={};
-            }
-        });
-        allChannels = channels; render(allChannels);
-        if(allChannels.length > 0) play(allChannels[0].url, allChannels[0].name, allChannels[0].logo);
-    });
-}
-function res() { canvas.width = playerArea.clientWidth; canvas.height = playerArea.clientHeight; }
-window.onresize = res; res();
-</script>
-</body>
-</html>
-
-<div class="list" id="list"></div>
-<div id="toast"></div>
-
-<script>
-const video=document.getElementById('video'), loader=document.getElementById('loader'), canvas=document.getElementById('visualizer'), ctx=canvas.getContext('2d'), listArea=document.getElementById('list'), pp=document.getElementById('pp'), controls=document.getElementById('controls'), qualityMenu=document.getElementById('qualityMenu');
-
-let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, audioCtx, analyser, source, dataArray;
-
-function copyShareLink() {
-    navigator.clipboard.writeText("https://bestiptv.rf.gd/").then(() => showToast("Link Copied!"));
-}
-
-function initVisualizer() {
-    if (audioCtx) return;
-    try {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        analyser = audioCtx.createAnalyser();
-        source = audioCtx.createMediaElementSource(video);
-        source.connect(analyser); analyser.connect(audioCtx.destination);
-        analyser.fftSize = 64; dataArray = new Uint8Array(analyser.frequencyBinCount);
-        draw();
-    } catch(e) {}
-}
-
-function draw() {
-    requestAnimationFrame(draw);
-    if(!analyser) return;
-    analyser.getByteFrequencyData(dataArray);
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let barWidth = (canvas.width / dataArray.length) * 2;
-    let x = 0;
-    for(let i=0; i<dataArray.length; i++) {
-        let barHeight = (dataArray[i]/255) * canvas.height;
-        ctx.fillStyle = "rgba(0, 229, 255, 0.8)";
-        ctx.fillRect(x, canvas.height - barHeight, barWidth - 4, barHeight);
-        x += barWidth;
-    }
-}
-
-video.onloadedmetadata = () => {
-    canvas.style.display = (video.videoHeight === 0) ? "block" : "none";
-};
-
-const getFavs = () => JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
-
-function render(arr) {
-    listArea.innerHTML = "";
-    document.getElementById('count').innerText = arr.length + " CH";
-    const favs = getFavs();
-    arr.forEach(ch => {
-        const isFav = favs.some(f => f.url === ch.url);
-        const d = document.createElement('div');
-        d.className = `row ${video.src === ch.url ? 'active' : ''}`;
-        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div><i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}"></i>`;
-        d.onclick = () => play(ch.url, ch.name, ch.logo);
-        d.querySelector('.star-btn').onclick = (e) => { e.stopPropagation(); toggleFavorite(ch); };
-        listArea.appendChild(d);
-    });
-}
-
-function toggleFavorite(ch) {
-    let favs = getFavs();
-    const idx = favs.findIndex(f => f.url === ch.url);
-    (idx > -1) ? favs.splice(idx, 1) : favs.push(ch);
-    localStorage.setItem('my_iptv_favs', JSON.stringify(favs));
-    render(isFavView ? favs : allChannels);
-}
-
-function toggleFavoriteView() {
-    isFavView = !isFavView;
-    document.getElementById('favBtnTab').classList.toggle('active-tab', isFavView);
-    render(isFavView ? getFavs() : allChannels);
-}
-
-function setupQualityLevels() {
-    qualityMenu.innerHTML = `<button onclick="setQuality(-1)">Auto</button>`;
-    hls.levels.forEach((l, i) => {
-        qualityMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p</button>`;
-    });
-}
-
-function setQuality(idx) { hls.currentLevel = idx; qualityMenu.style.display = "none"; }
-
-function play(url, name, logo) {
-    initVisualizer();
-    if(audioCtx?.state === 'suspended') audioCtx.resume();
-    document.getElementById('title').innerText = name;
-    document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
-    loader.style.display = "block";
-    qualityMenu.innerHTML = "";
-
-    if(url.includes('.m3u8') && Hls.isSupported()){
-        hls.destroy(); hls = new Hls();
-        hls.loadSource(url); hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => { video.play(); setupQualityLevels(); });
-    } else {
-        video.src = url; video.play().catch(()=> loader.style.display="none");
-    }
-    pp.className = "fas fa-pause";
-}
-
-function handleControlToggle() { 
-    controls.classList.toggle('show');
-    clearTimeout(hideTimeout);
-    if(controls.classList.contains('show')) hideTimeout = setTimeout(() => controls.classList.remove('show'), 4000);
-}
-
-function toggleQualityMenu() { qualityMenu.style.display = qualityMenu.style.display === "flex" ? "none" : "flex"; }
-function togglePlay() { video.paused ? (video.play(), pp.className="fas fa-pause") : (video.pause(), pp.className="fas fa-play"); }
-function toggleMute() { video.muted = !video.muted; document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up"; }
-function toggleFull() { document.fullscreenElement ? document.exitFullscreen() : playerArea.requestFullscreen(); }
 function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
 
 video.onplaying = () => loader.style.display="none";
