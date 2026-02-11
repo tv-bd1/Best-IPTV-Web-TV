@@ -22,28 +22,35 @@ body {
     display: flex; align-items: center; justify-content: center; 
     aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden;
 }
-/* ফুলস্ক্রিন অবস্থায় কালো ব্যাকগ্রাউন্ড নিশ্চিত করা */
 .player-wrap:fullscreen { width: 100vw; height: 100vh; aspect-ratio: auto; }
 
-video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
-#visualizer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; display: none; }
+video { width: 100%; height: 100%; object-fit: contain; z-index: 1; }
+/* Visualizer Layer */
+#visualizer { 
+    position: absolute; inset: 0; width: 100%; height: 100%; 
+    z-index: 2; pointer-events: none; opacity: 0.6;
+}
 
 .controls-overlay { 
-    position: absolute; inset: 0; background: rgba(0,0,0,0.5); 
+    position: absolute; inset: 0; background: rgba(0,0,0,0.4); 
     opacity: 0; visibility: hidden; transition: 0.3s; z-index: 15; 
     display: flex; flex-direction: column; justify-content: flex-end; 
 }
 .controls-overlay.show { opacity: 1; visibility: visible; }
-.bottom-bar { padding: 10px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; justify-content: space-between; }
-.mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
-.mini-btns i, .right-side i { font-size: 1.2rem; cursor: pointer; color: #fff; }
 
+.bottom-bar { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; align-items: center; justify-content: space-between; }
+.mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
+.mini-btns i, .right-side i { font-size: 1.3rem; cursor: pointer; color: #fff; text-shadow: 0 0 5px #000; }
+
+/* Fixed Quality Menu Position */
 .quality-menu { 
-    position: absolute; bottom: 60px; right: 15px; background: rgba(20,20,20,0.95); 
+    position: absolute; bottom: 70px; right: 15px; background: rgba(15,15,15,0.95); 
     border: 1px solid var(--accent); border-radius: 8px; display: none; 
-    flex-direction: column; z-index: 20; min-width: 100px;
+    flex-direction: column; z-index: 30; min-width: 110px;
+    max-height: 200px; overflow-y: auto;
 }
-.quality-menu button { background: none; border: none; color: white; padding: 10px; cursor: pointer; border-bottom: 1px solid #222; }
+.quality-menu button { background: none; border: none; color: white; padding: 12px; cursor: pointer; border-bottom: 1px solid #333; font-size: 0.9rem; text-align: center; }
+.quality-menu button:hover { background: var(--accent); color: #000; }
 
 .info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; flex-shrink: 0; }
 .channel-meta { display: flex; align-items: center; gap: 10px; }
@@ -69,22 +76,22 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 2; }
 </head>
 <body>
 
-<div class="player-wrap" id="playerArea" onclick="handleControlToggle()">
+<div class="player-wrap" id="playerArea">
     <div class="loader" id="loader"></div>
+    <video id="video" playsinline crossorigin="anonymous" onclick="handleControlToggle()"></video>
     <canvas id="visualizer"></canvas>
-    <video id="video" playsinline crossorigin="anonymous"></video>
-    <div class="quality-menu" id="qualityMenu"></div>
-
-    <div class="controls-overlay" id="controls">
-        <div class="bottom-bar">
+    
+    <div class="controls-overlay" id="controls" onclick="handleControlToggle()">
+        <div class="quality-menu" id="qualityMenu" onclick="event.stopPropagation()"></div>
+        <div class="bottom-bar" onclick="event.stopPropagation()">
             <div class="mini-btns">
-                <i class="fas fa-play" id="pp" onclick="event.stopPropagation(); togglePlay()"></i>
-                <i class="fas fa-redo" onclick="event.stopPropagation(); location.reload()"></i>
+                <i class="fas fa-play" id="pp" onclick="togglePlay()"></i>
+                <i class="fas fa-redo" onclick="location.reload()"></i>
             </div>
             <div class="right-side">
-                <i class="fas fa-cog" onclick="event.stopPropagation(); toggleQualityMenu()"></i>
-                <i class="fas fa-volume-up" id="vBtn" onclick="event.stopPropagation(); toggleMute()"></i>
-                <i class="fas fa-expand" onclick="event.stopPropagation(); toggleFull()"></i>
+                <i class="fas fa-cog" onclick="toggleQualityMenu()"></i>
+                <i class="fas fa-volume-up" id="vBtn" onclick="toggleMute()"></i>
+                <i class="fas fa-expand" onclick="toggleFull()"></i>
             </div>
         </div>
     </div>
@@ -119,16 +126,19 @@ function copyShareLink() {
     navigator.clipboard.writeText("https://bestiptv.rf.gd/").then(() => showToast("Link Copied!"));
 }
 
+// Fixed Visualizer Logic
 function initVisualizer() {
     if (audioCtx) return;
     try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         analyser = audioCtx.createAnalyser();
         source = audioCtx.createMediaElementSource(video);
-        source.connect(analyser); analyser.connect(audioCtx.destination);
-        analyser.fftSize = 64; dataArray = new Uint8Array(analyser.frequencyBinCount);
+        source.connect(analyser); 
+        analyser.connect(audioCtx.destination);
+        analyser.fftSize = 128; 
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
         draw();
-    } catch(e) {}
+    } catch(e) { console.log("Visualizer blocked by browser"); }
 }
 
 function draw() {
@@ -136,12 +146,13 @@ function draw() {
     if(!analyser) return;
     analyser.getByteFrequencyData(dataArray);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let barWidth = (canvas.width / dataArray.length) * 2;
+    
+    let barWidth = (canvas.width / dataArray.length) * 2.5;
     let x = 0;
     for(let i=0; i<dataArray.length; i++) {
-        let barHeight = (dataArray[i]/255) * canvas.height;
-        ctx.fillStyle = "rgba(0, 229, 255, 0.8)";
-        ctx.fillRect(x, canvas.height - barHeight, barWidth - 4, barHeight);
+        let barHeight = (dataArray[i]/255) * canvas.height * 0.8;
+        ctx.fillStyle = `rgba(0, 229, 255, ${dataArray[i]/255})`;
+        ctx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
         x += barWidth;
     }
 }
@@ -178,17 +189,23 @@ function toggleFavoriteView() {
 }
 
 function setupQualityLevels() {
-    qualityMenu.innerHTML = `<button onclick="setQuality(-1)">Auto</button>`;
+    qualityMenu.innerHTML = `<button onclick="setQuality(-1)">Auto Mode</button>`;
     hls.levels.forEach((l, i) => {
-        qualityMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p</button>`;
+        const label = l.height ? l.height + "p" : "Level " + i;
+        qualityMenu.innerHTML += `<button onclick="setQuality(${i})">${label}</button>`;
     });
 }
 
-function setQuality(idx) { hls.currentLevel = idx; qualityMenu.style.display = "none"; }
+function setQuality(idx) { 
+    hls.currentLevel = idx; 
+    qualityMenu.style.display = "none"; 
+    showToast("Quality Changed");
+}
 
 function play(url, name, logo) {
-    initVisualizer();
-    if(audioCtx?.state === 'suspended') audioCtx.resume();
+    if(!audioCtx) initVisualizer();
+    if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+    
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
     loader.style.display = "block";
@@ -207,32 +224,31 @@ function play(url, name, logo) {
 function handleControlToggle() { 
     controls.classList.toggle('show');
     clearTimeout(hideTimeout);
-    if(controls.classList.contains('show')) hideTimeout = setTimeout(() => controls.classList.remove('show'), 4000);
+    if(controls.classList.contains('show')) {
+        hideTimeout = setTimeout(() => {
+            controls.classList.remove('show');
+            qualityMenu.style.display = "none";
+        }, 5000);
+    }
 }
 
-function toggleQualityMenu() { qualityMenu.style.display = qualityMenu.style.display === "flex" ? "none" : "flex"; }
+function toggleQualityMenu() { 
+    qualityMenu.style.display = (qualityMenu.style.display === "flex") ? "none" : "flex"; 
+}
 function togglePlay() { video.paused ? (video.play(), pp.className="fas fa-pause") : (video.pause(), pp.className="fas fa-play"); }
 function toggleMute() { video.muted = !video.muted; document.getElementById('vBtn').className = video.muted ? "fas fa-volume-mute" : "fas fa-volume-up"; }
 
-// ফুলস্ক্রিন ও অটো রোটেট ফাংশন
 function toggleFull() {
     if (!document.fullscreenElement) {
         if (playerArea.requestFullscreen) {
             playerArea.requestFullscreen().then(() => {
                 if (screen.orientation && screen.orientation.lock) {
-                    screen.orientation.lock('landscape').catch(e => console.log(e));
+                    screen.orientation.lock('landscape').catch(e => {});
                 }
             });
-        } else if (video.webkitEnterFullscreen) { // iOS এর জন্য
-            video.webkitEnterFullscreen();
         }
     } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-            if (screen.orientation && screen.orientation.unlock) {
-                screen.orientation.unlock();
-            }
-        }
+        document.exitFullscreen();
     }
 }
 
@@ -255,8 +271,13 @@ if(playlistUrl) {
         if(allChannels.length > 0) play(allChannels[0].url, allChannels[0].name, allChannels[0].logo);
     });
 }
-function res() { canvas.width = playerArea.clientWidth; canvas.height = playerArea.clientHeight; }
-window.onresize = res; res();
+
+function res() { 
+    canvas.width = playerArea.clientWidth; 
+    canvas.height = playerArea.clientHeight; 
+}
+window.onresize = res; 
+res();
 </script>
 </body>
 </html>
