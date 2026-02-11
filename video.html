@@ -17,9 +17,8 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none; }
 
 /* AUDIO VISUALIZER ANIMATION */
-#audioAnim { position: absolute; inset: 0; display: none; align-items: flex-end; justify-content: center; gap: 4px; background: #050505; z-index: 4; padding-bottom: 30px; }
-.v-bar { width: 8px; background: linear-gradient(to top, var(--accent), #fff); border-radius: 5px; animation: jump 0.5s infinite alternate; }
-@keyframes jump { 0% { height: 10%; } 100% { height: 70%; } }
+#audioAnim { position: absolute; inset: 0; display: none; align-items: flex-end; justify-content: center; gap: 5px; background: #050505; z-index: 4; padding-bottom: 40px; }
+.v-bar { width: 10px; background: linear-gradient(to top, var(--accent), #fff); border-radius: 5px; height: 20%; transition: 0.1s; }
 
 /* BIG WHITE HUD */
 #hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; z-index: 1000; display: none; text-align: center; pointer-events: none; }
@@ -35,16 +34,17 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 .zoom-frame-btn { border: 2.5px solid #fff; border-radius: 4px; padding: 2px 4px !important; font-size: 1.2rem !important; }
 
 /* POPUP MENU (Blackish Background) */
-.pop-menu { position: absolute; bottom: 75px; right: 15px; background: rgba(15, 15, 15, 0.95); border: 1px solid #333; border-radius: 12px; display: none; flex-direction: column; z-index: 150; min-width: 160px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
-.pop-menu button { background: none; border: none; color: white; padding: 14px 18px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 14px; }
+.pop-menu { position: absolute; bottom: 75px; right: 15px; background: rgba(10, 10, 10, 0.98); border: 1px solid #333; border-radius: 12px; display: none; flex-direction: column; z-index: 150; min-width: 170px; box-shadow: 0 10px 30px rgba(0,0,0,1); }
+.pop-menu button { background: none; border: none; color: white; padding: 14px 18px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 14px; transition: 0.2s; }
+.pop-menu button:hover { background: rgba(255,255,255,0.05); }
 .pop-menu button:last-child { border: none; }
 
-/* HIGHLIGHTED INFO AREA (Redesigned) */
-.info { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; border-bottom: 2px solid #1a1a1a; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+/* HIGHLIGHTED INFO AREA (Premium Look) */
+.info { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 2px solid #1a1a1a; }
 .info-left { display:flex; align-items:center; gap:15px; }
-.mini-logo { width: 55px; height: 55px; border-radius: 12px; object-fit: cover; border: 2px solid #222; background: #111; padding: 2px; box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); }
-#title { font-size: 19px; color: #fff; font-weight: 600; letter-spacing: 0.5px; }
-#count { font-size: 13px; color: var(--accent); background: rgba(0,229,255,0.1); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(0,229,255,0.4); font-weight: bold; }
+.mini-logo { width: 55px; height: 55px; border-radius: 12px; object-fit: cover; border: 2px solid #222; background: #111; padding: 2px; box-shadow: 0 0 15px rgba(0, 229, 255, 0.1); }
+#title { font-size: 19px; color: #fff; font-weight: 600; letter-spacing: 0.3px; }
+#count { font-size: 13px; color: var(--accent); background: rgba(0,229,255,0.1); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(0,229,255,0.3); font-weight: bold; }
 
 /* TAB ACTIONS */
 .actions { display: flex; padding: 15px 0; background: #000; border-bottom: 1px solid #1a1a1a; }
@@ -53,12 +53,14 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 
 /* LIST */
 .list { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg); padding-bottom: 80px; }
-.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; }
-.row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.08); }
+.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; transition: 0.3s; }
+.row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.08); box-shadow: inset 0 0 10px rgba(0,229,255,0.05); }
 .list-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
 .name { flex: 1; font-size: 1rem; color: #fff; }
 .star-btn { font-size: 1.3rem; color: #333; padding: 5px; transition: 0.3s; }
 .star-btn.is-fav { color: var(--fav) !important; }
+
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 </style>
 </head>
 <body>
@@ -93,8 +95,8 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
         <div>
             <h3 id="title">Select Channel</h3>
             <div style="display:flex; align-items:center; gap:6px;">
-                <span style="width:8px; height:8px; background:red; border-radius:50%; display:inline-block; animation: pulse 1s infinite;"></span>
-                <small style="color:var(--accent); font-weight:bold; letter-spacing: 1px; text-transform: uppercase;">Live Now</small>
+                <span style="width:8px; height:8px; background:#00ff00; border-radius:50%; display:inline-block; animation: pulse 1.5s infinite;"></span>
+                <small style="color:var(--accent); font-weight:bold; letter-spacing: 1px; text-transform: uppercase;">Streaming Now</small>
             </div>
         </div>
     </div>
@@ -113,13 +115,24 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), audioAnim=document.getElementById('audioAnim');
 let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, brightness=1;
 
-// ভিজ্যুয়ালাইজার বার তৈরি করা
-for(let i=0; i<15; i++) {
+// ভিজ্যুয়ালাইজার বার তৈরি এবং অ্যানিমেশন লজিক
+for(let i=0; i<20; i++) {
     let bar = document.createElement('div');
     bar.className = 'v-bar';
-    bar.style.animationDelay = (Math.random()*0.5)+'s';
     audioAnim.appendChild(bar);
 }
+
+function updateVisualizer() {
+    if (audioAnim.style.display === 'flex') {
+        const bars = document.querySelectorAll('.v-bar');
+        bars.forEach(bar => {
+            let height = Math.random() * 60 + 10; // 10% থেকে 70% এর মধ্যে র‍্যান্ডম মুভমেন্ট
+            bar.style.height = height + '%';
+        });
+    }
+    requestAnimationFrame(updateVisualizer);
+}
+updateVisualizer();
 
 function handlePlayerClick() {
     if(popMenu.style.display === 'flex') {
@@ -142,17 +155,24 @@ function play(url, name, logo) {
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
     
-    // অডিও চ্যানেল চেক
-    const isAudio = !url.includes('.m3u8') && (url.includes('radio') || url.includes('.mp3'));
+    // অডিও চ্যানেল ডিটেকশন (ভিজ্যুয়ালাইজার দেখানোর জন্য)
+    const isAudio = url.includes('radio') || url.includes('.mp3') || !url.includes('.m3u8');
     audioAnim.style.display = isAudio ? 'flex' : 'none';
 
     if(url.includes('.m3u8')){
         hls.destroy(); hls = new Hls();
         hls.loadSource(url); hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    } else { hls.destroy(); video.src = url; video.play(); }
+    } else { 
+        hls.destroy(); 
+        video.src = url; 
+        video.play().catch(e => console.log("Play error", e)); 
+    }
     document.getElementById('pp').className = "fas fa-pause";
     render();
+    
+    // প্লেয়ার কন্ট্রোল ৩ সেকেন্ড পর হাইড করার জন্য
+    handlePlayerClick();
 }
 
 function toggleFav(e, ch) {
