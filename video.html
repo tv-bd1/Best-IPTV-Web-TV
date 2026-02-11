@@ -8,42 +8,53 @@
 <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
 <style>
-:root { --bg: #000; --card: #121212; --accent: #00E5FF; --fav: #FFD700; --text: #fff; }
+:root { --bg: #000; --card: #121212; --accent: #00E5FF; --text: #fff; }
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
 body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
 /* PLAYER AREA */
 .player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; touch-action: none; }
-video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none; }
+video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none; transition: filter 0.1s ease; }
 
-/* DYNAMIC POPUP MENU (হালকা ব্লার এবং অটো হাইট) */
-.pop-menu { 
-    position: absolute; bottom: 60px; 
-    background: rgba(255, 255, 255, 0.1); /* অনেক হালকা ব্যাকগ্রাউন্ড */
-    backdrop-filter: blur(8px); /* ব্লার আরও কমানো হয়েছে */
-    -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 12px; 
-    display: none; flex-direction: column; z-index: 150; 
-    min-width: 140px; height: auto; overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+/* SWIPE HUD (হালকা স্বচ্ছ কালো) */
+#hud { 
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+    background: rgba(0, 0, 0, 0.4); /* হালকা কালো */
+    backdrop-filter: blur(5px);
+    color: white; padding: 15px 25px; border-radius: 15px; z-index: 200; 
+    display: none; text-align: center; pointer-events: none; min-width: 100px; 
 }
-.pop-menu button { 
-    background: none; border: none; color: #fff; padding: 12px 15px; 
-    cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.1); 
-    text-align: left; font-size: 13px; font-weight: 500; 
-}
-.pop-menu button:last-child { border-bottom: none; }
+#hud i { display: block; font-size: 2.2rem; margin-bottom: 8px; color: var(--accent); }
 
 /* CONTROLS */
 .controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.2); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 100; display: flex; flex-direction: column; justify-content: flex-end; }
 .controls-overlay.show { opacity: 1; visibility: visible; }
 .bottom-bar { padding: 10px 15px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); display: flex; justify-content: space-between; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
-.mini-btns, .right-side { display: flex; align-items: center; gap: 15px; }
+.mini-btns, .right-side { display: flex; align-items: center; gap: 18px; }
 .mini-btns i, .right-side i { font-size: 1.3rem; cursor: pointer; color: #fff; padding: 5px; }
 
+/* DYNAMIC POPUP MENU (হালকা স্বচ্ছ কালো) */
+.pop-menu { 
+    position: absolute; bottom: 60px; 
+    background: rgba(0, 0, 0, 0.5); /* হালকা কালো ব্যাকগ্রাউন্ড */
+    backdrop-filter: blur(12px); 
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px; 
+    display: none; flex-direction: column; z-index: 150; 
+    min-width: 150px; height: auto; overflow: hidden;
+    box-shadow: 0 4px 25px rgba(0,0,0,0.6);
+}
+.pop-menu button { 
+    background: none; border: none; color: #fff; padding: 12px 18px; 
+    cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.08); 
+    text-align: left; font-size: 14px; font-weight: 500; 
+}
+.pop-menu button:last-child { border-bottom: none; }
+.pop-menu button:active { background: var(--accent); color: #000; }
+
 /* UI ELEMENTS */
-.info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; }
+.info { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; }
 .mini-logo { width: 45px; height: 45px; border-radius: 50%; object-fit: cover; }
 .list { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg); padding-bottom: 80px; }
 .row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; }
@@ -51,14 +62,12 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 .name { flex: 1; font-size: 0.95rem; color: #fff; }
 
 #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--accent); color: #000; padding: 8px 18px; border-radius: 20px; font-size: 12px; display: none; z-index: 1000; font-weight: bold; }
-
-/* ফুলস্ক্রিনে ভিডিও রোটেশন হ্যান্ডেল করার জন্য */
-:fullscreen .player-wrap { width: 100vw; height: 100vh; }
 </style>
 </head>
 <body>
 
 <div class="player-wrap" id="playerArea">
+    <div id="hud"><i id="hudIcon"></i><span id="hudValue">0%</span></div>
     <video id="video" playsinline crossorigin="anonymous"></video>
     <div class="pop-menu" id="popMenu"></div>
     <div class="controls-overlay" id="controls">
@@ -89,15 +98,14 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 
 <script>
 const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list');
-let hls=new Hls(), allChannels=[], hideTimeout;
+let hls=new Hls(), allChannels=[], startY, startVal, isLeft, hideTimeout, brightness = 1;
 
-// পপ-আপ মেনু এলাইনমেন্ট
 function alignMenu(targetId) {
     const btn = document.getElementById(targetId);
     const pRect = playerArea.getBoundingClientRect();
     const bRect = btn.getBoundingClientRect();
-    let leftPos = bRect.left - pRect.left - 60;
-    leftPos = Math.max(10, Math.min(leftPos, pRect.width - 150));
+    let leftPos = bRect.left - pRect.left - 70;
+    leftPos = Math.max(10, Math.min(leftPos, pRect.width - 160));
     popMenu.style.left = leftPos + "px";
     popMenu.style.display = 'flex';
 }
@@ -122,31 +130,49 @@ function showQualityMenu(e) {
 }
 
 function setScaling(m, e) { if(e) e.stopPropagation(); video.style.objectFit = m; popMenu.style.display = 'none'; showToast("Scale: "+m.toUpperCase()); }
-function setQuality(i, e) { if(e) e.stopPropagation(); hls.currentLevel = i; popMenu.style.display = 'none'; showToast("Setting Quality..."); }
+function setQuality(i, e) { if(e) e.stopPropagation(); hls.currentLevel = i; popMenu.style.display = 'none'; showToast("Changing Quality..."); }
 
-// ফুলস্ক্রিন এবং রোটেশন লজিক
+// SWIPE CONTROLS
+playerArea.addEventListener('touchstart', e => {
+    startY = e.touches[0].clientY;
+    isLeft = e.touches[0].clientX < playerArea.clientWidth / 2;
+    startVal = isLeft ? brightness : video.volume;
+});
+
+playerArea.addEventListener('touchmove', e => {
+    if(popMenu.style.display === 'flex') return;
+    e.preventDefault();
+    let delta = (startY - e.touches[0].clientY) / 150;
+    const hud = document.getElementById('hud'), icon = document.getElementById('hudIcon'), val = document.getElementById('hudValue');
+    hud.style.display = 'block';
+    if(isLeft) {
+        brightness = Math.min(Math.max(startVal + delta, 0.3), 1.8);
+        video.style.filter = `brightness(${brightness})`;
+        icon.className = 'fas fa-sun'; val.innerText = Math.round(brightness * 50) + "%";
+    } else {
+        let v = Math.min(Math.max(startVal + delta, 0), 1);
+        video.volume = v;
+        icon.className = v === 0 ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+        val.innerText = Math.round(v * 100) + "%";
+    }
+});
+playerArea.addEventListener('touchend', () => setTimeout(() => document.getElementById('hud').style.display='none', 500));
+
+// FULLSCREEN WITH AUTO ZOOM
 async function toggleFull(e) {
     if(e) e.stopPropagation();
     try {
         if (!document.fullscreenElement) {
-            if (playerArea.requestFullscreen) {
-                await playerArea.requestFullscreen();
-            } else if (playerArea.webkitRequestFullscreen) {
-                await playerArea.webkitRequestFullscreen();
-            }
-            // স্ক্রিন ল্যান্ডস্কেপ মোডে রোটেট করার চেষ্টা
+            await playerArea.requestFullscreen();
+            video.style.objectFit = 'fill'; // অটো জুম টু স্ক্রিন
             if (screen.orientation && screen.orientation.lock) {
-                await screen.orientation.lock('landscape').catch(err => console.log("Rotation locked by system"));
+                await screen.orientation.lock('landscape').catch(() => {});
             }
         } else {
             document.exitFullscreen();
-            if (screen.orientation && screen.orientation.unlock) {
-                screen.orientation.unlock();
-            }
+            video.style.objectFit = 'contain'; // আগের অবস্থায় ফেরা
         }
-    } catch (err) {
-        console.log(err);
-    }
+    } catch (err) { console.log(err); }
 }
 
 function play(url, name, logo) {
@@ -183,7 +209,6 @@ playerArea.onclick = () => {
 function togglePlay(e) { if(e) e.stopPropagation(); video.paused ? (video.play(), document.getElementById('pp').className="fas fa-pause") : (video.pause(), document.getElementById('pp').className="fas fa-play"); }
 function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none", 2000); }
 
-// প্লেলিস্ট ফেচিং
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
 if(playlistUrl) {
     fetch(playlistUrl).then(r=>r.text()).then(data => {
