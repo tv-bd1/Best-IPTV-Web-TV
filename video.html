@@ -16,60 +16,51 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 .player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden; }
 video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none; }
 
-/* SLOW AUDIO VISUALIZER ANIMATION */
-#audioAnim { position: absolute; inset: 0; display: none; align-items: flex-end; justify-content: center; gap: 6px; background: #050505; z-index: 4; padding-bottom: 40px; }
-.v-bar { width: 10px; background: var(--accent); border-radius: 5px; height: 20%; transition: height 0.8s ease-in-out; } /* Slow Transition */
+/* AUDIO VISUALIZER - FULL SCREEN BOUNCE */
+#visualizer { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 4; pointer-events: none; background: #050505; display: none; }
 
-/* BIG WHITE HUD */
-#hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; z-index: 1000; display: none; text-align: center; pointer-events: none; }
-#hud i { display: block; font-size: 5rem; color: #ffffff; margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); }
-#hud span { font-size: 2rem; font-weight: bold; }
+/* HUD */
+#hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); color: white; padding: 15px 25px; border-radius: 10px; z-index: 200; display: none; text-align: center; pointer-events: none; }
+#hud i { display: block; font-size: 2.5rem; margin-bottom: 8px; color: var(--accent); }
 
-/* CONTROLS (Initially Hidden) */
-.controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transition: 0.4s; z-index: 100; display: flex; flex-direction: column; justify-content: flex-end; }
+/* CONTROLS */
+.controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; visibility: hidden; transition: 0.3s; z-index: 100; display: flex; flex-direction: column; justify-content: flex-end; }
 .controls-overlay.show { opacity: 1; visibility: visible; }
-.bottom-bar { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-between; align-items: center; }
+.bottom-bar { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-between; align-items: center; padding-bottom: env(safe-area-inset-bottom); }
 .mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
-.mini-btns i, .right-side i { font-size: 1.6rem; cursor: pointer; color: #fff; }
-.zoom-frame-btn { border: 2.5px solid #fff; border-radius: 4px; padding: 2px 4px !important; font-size: 1.2rem !important; }
+.mini-btns i, .right-side i { font-size: 1.4rem; cursor: pointer; color: #fff; }
 
-/* POPUP MENU */
-.pop-menu { position: absolute; bottom: 75px; right: 15px; background: rgba(10, 10, 10, 0.98); border: 1px solid #333; border-radius: 12px; display: none; flex-direction: column; z-index: 150; min-width: 170px; box-shadow: 0 10px 30px rgba(0,0,0,1); }
-.pop-menu button { background: none; border: none; color: white; padding: 14px 18px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 14px; }
-.pop-menu button:last-child { border: none; }
+/* POPUP MENU - POSITION FIXED */
+.pop-menu { position: absolute; bottom: 65px; right: 10px; background: rgba(20,20,20,0.95); border: 1px solid #333; border-radius: 10px; display: none; flex-direction: column; z-index: 150; min-width: 140px; max-height: 180px; overflow-y: auto; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
+.pop-menu button { background: none; border: none; color: white; padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 13px; }
 
-/* HIGHLIGHTED INFO AREA (Selection Hover Removed) */
-.info { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 2px solid #1a1a1a; pointer-events: none; } /* Non-clickable */
-.info-left { display:flex; align-items:center; gap:15px; }
-.mini-logo { width: 55px; height: 55px; border-radius: 12px; object-fit: cover; border: 2px solid #222; background: #111; padding: 2px; box-shadow: 0 0 15px rgba(0, 229, 255, 0.1); }
-#title { font-size: 19px; color: #fff; font-weight: 600; letter-spacing: 0.3px; }
-#count { font-size: 13px; color: var(--accent); background: rgba(0,229,255,0.1); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(0,229,255,0.3); font-weight: bold; }
-
-/* TAB ACTIONS - BOTH TABS SAME STYLE */
-.actions { display: flex; padding: 15px 0; background: #000; border-bottom: 1px solid #1a1a1a; }
-.actions div { flex: 1; text-align: center; font-size: 0.95rem; color: #eee; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; position: relative; }
+/* UI ELEMENTS */
+.info { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; background: #080808; border-bottom: 1px solid #1a1a1a; pointer-events: none; } /* বর্ডার ও ক্লিক রিমুভ করা হয়েছে */
+.mini-logo { width: 45px; height: 45px; border-radius: 10px; object-fit: cover; background: #111; }
+.actions { display: flex; padding: 15px 0; background: #050505; border-bottom: 1px solid #1a1a1a; }
+.actions div { flex: 1; text-align: center; font-size: 0.9rem; color: #bbb; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; }
 .active-tab { color: var(--accent) !important; font-weight: bold; }
-.active-tab::after { content: ''; position: absolute; bottom: -16px; left: 20%; width: 60%; height: 2px; background: var(--accent); }
+.active-tab::after { content: ''; position: absolute; bottom: -15px; left: 20%; width: 60%; height: 2px; background: var(--accent); }
 
-/* LIST (Hover Effect Removed) */
+/* LIST */
 .list { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg); padding-bottom: 80px; }
-.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; transition: 0.3s; }
-.row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.08); }
+.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #1a1a1a; }
+.row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.05); }
 .list-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
 .name { flex: 1; font-size: 1rem; color: #fff; }
-.star-btn { font-size: 1.3rem; color: #333; padding: 5px; transition: 0.3s; }
-.star-btn.is-fav { color: var(--fav) !important; }
-
-@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+.star-btn { font-size: 1.3rem; color: #444; padding: 5px; }
+.star-btn.is-fav { color: var(--fav); }
 </style>
 </head>
 <body>
 
-<div class="player-wrap" id="playerArea" onclick="handlePlayerClick()">
-    <div id="audioAnim"></div>
+<div class="player-wrap" id="playerArea">
     <div id="hud"><i id="hudIcon"></i><span id="hudValue">0%</span></div>
+    <canvas id="visualizer"></canvas>
     <video id="video" playsinline crossorigin="anonymous"></video>
+    
     <div class="pop-menu" id="popMenu"></div>
+    
     <div class="controls-overlay" id="controls">
         <div class="bottom-bar">
             <div class="mini-btns">
@@ -79,100 +70,89 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
             <div class="right-side">
                 <i class="fas fa-sliders-h" onclick="showScalingMenu(event)"></i>
                 <i class="fas fa-cog" onclick="showQualityMenu(event)"></i>
-                <i class="fas fa-expand zoom-frame-btn" onclick="toggleFull(event)"></i>
+                <i class="fas fa-expand" onclick="toggleFull(event)"></i>
             </div>
         </div>
     </div>
 </div>
 
 <div class="info">
-    <div class="info-left">
+    <div style="display:flex; align-items:center; gap:12px;">
         <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
-        <div>
-            <h3 id="title">Select Channel</h3>
-            <div style="display:flex; align-items:center; gap:6px;">
-                <span style="width:8px; height:8px; background:#00ff00; border-radius:50%; display:inline-block; animation: pulse 1.5s infinite;"></span>
-                <small style="color:var(--accent); font-weight:bold; letter-spacing: 1px; text-transform: uppercase;">Streaming Now</small>
-            </div>
-        </div>
+        <div><h3 id="title" style="font-size:16px;">Select Channel</h3><small style="color:var(--accent); font-weight:bold;">LIVE</small></div>
     </div>
-    <div id="count">0 CH</div>
+    <div id="count" style="font-size:13px; color:var(--accent); background:rgba(0,229,255,0.1); padding:4px 10px; border-radius:5px;">0 CH</div>
 </div>
 
 <div class="actions">
     <div id="allBtnTab" class="active-tab" onclick="switchTab('all', this)"><i class="fas fa-list"></i> All List</div>
-    <div id="favBtnTab" onclick="switchTab('fav', this)"><i class="fas fa-star" style="color: gold;"></i> My List</div>
+    <div id="favBtnTab" onclick="switchTab('fav', this)"><i class="fas fa-star"></i> My List</div>
     <div onclick="window.open('https://t.me/bestiptvlive')"><i class="fab fa-telegram-plane"></i> Telegram</div>
 </div>
 
 <div class="list" id="list"></div>
 
 <script>
-const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), audioAnim=document.getElementById('audioAnim');
-let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, brightness=1;
+const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), canvas=document.getElementById('visualizer'), ctx=canvas.getContext('2d');
+let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, lastTap = 0;
+let audioCtx, analyser, dataArray;
 
-// ভিজ্যুয়ালাইজার বার তৈরি (Slow Movement)
-for(let i=0; i<15; i++) {
-    let bar = document.createElement('div');
-    bar.className = 'v-bar';
-    audioAnim.appendChild(bar);
+// অডিও ভিজুয়ালাইজার লজিক - স্লো এবং ফুল স্ক্রিন বাউন্স
+function initVisualizer() {
+    if (audioCtx) return;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    analyser = audioCtx.createAnalyser();
+    const source = audioCtx.createMediaElementSource(video);
+    source.connect(analyser); analyser.connect(audioCtx.destination);
+    analyser.fftSize = 64;
+    dataArray = new Uint8Array(analyser.frequencyBinCount);
+    draw();
 }
 
-function updateVisualizer() {
-    if (audioAnim.style.display === 'flex') {
-        const bars = document.querySelectorAll('.v-bar');
-        bars.forEach(bar => {
-            let height = Math.random() * 40 + 15; // Lower range for slower look
-            bar.style.height = height + '%';
-        });
+let particles = [];
+function draw() {
+    requestAnimationFrame(draw);
+    if(!analyser || canvas.style.display === 'none') return;
+    analyser.getByteFrequencyData(dataArray);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    let avg = dataArray.reduce((a,b) => a+b) / dataArray.length;
+    let speed = avg / 50;
+
+    // স্লাইড বা লাফানোর ইফেক্ট (স্লো মুভমেন্ট)
+    for(let i=0; i<dataArray.length; i++) {
+        let barHeight = (dataArray[i]/255) * canvas.height * 0.8;
+        let x = (canvas.width / dataArray.length) * i;
+        ctx.fillStyle = `rgba(0, 229, 255, 0.6)`;
+        // ডাইনে বামে ওপর নিচে মুভমেন্ট লজিক
+        let offset = Math.sin(Date.now() * 0.001 + i) * 20; 
+        ctx.fillRect(x + offset, (canvas.height - barHeight) / 2 + offset, 15, barHeight);
     }
-    setTimeout(updateVisualizer, 800); // Updated every 0.8 seconds for slow effect
-}
-updateVisualizer();
-
-function handlePlayerClick() {
-    if(popMenu.style.display === 'flex') {
-        popMenu.style.display = 'none';
-        return;
-    }
-    controls.classList.add('show');
-    clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(() => controls.classList.remove('show'), 3000);
 }
 
-function switchTab(type, el) {
-    document.querySelectorAll('.actions div').forEach(d => d.classList.remove('active-tab'));
-    el.classList.add('active-tab');
-    isFavView = (type === 'fav');
-    render();
-}
+video.onloadedmetadata = () => {
+    canvas.style.display = (video.videoHeight === 0) ? "block" : "none";
+    if(canvas.style.display === "block") initVisualizer();
+};
 
 function play(url, name, logo) {
+    if(audioCtx?.state === 'suspended') audioCtx.resume();
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
-    const isAudio = url.includes('radio') || url.includes('.mp3') || !url.includes('.m3u8');
-    audioAnim.style.display = isAudio ? 'flex' : 'none';
-
     if(url.includes('.m3u8')){
         hls.destroy(); hls = new Hls();
         hls.loadSource(url); hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    } else { 
-        hls.destroy(); 
-        video.src = url; 
-        video.play().catch(e => console.log(e)); 
-    }
+    } else { video.src = url; video.play(); }
     document.getElementById('pp').className = "fas fa-pause";
     render();
-    handlePlayerClick();
 }
 
-function toggleFav(e, ch) {
-    e.stopPropagation();
-    let f = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
-    let i = f.findIndex(x => x.url === ch.url);
-    if(i > -1) f.splice(i, 1); else f.push(ch);
-    localStorage.setItem('my_iptv_favs', JSON.stringify(f));
+// ট্যাব সুইচিং কালার ফিক্স
+function switchTab(type, el) {
+    document.querySelectorAll('.actions div').forEach(d => d.classList.remove('active-tab'));
+    el.classList.add('active-tab');
+    isFavView = (type === 'fav');
     render();
 }
 
@@ -181,59 +161,65 @@ function render() {
     listArea.innerHTML = "";
     document.getElementById('count').innerText = arr.length + " CH";
     arr.forEach(ch => {
-        const favs = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
-        const isFav = favs.some(f => f.url === ch.url);
         const isActive = (video.src === ch.url || hls.url === ch.url);
         const d = document.createElement('div');
         d.className = `row ${isActive ? 'active' : ''}`;
-        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div><i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}" onclick="toggleFav(event, ${JSON.stringify(ch).replace(/"/g, '&quot;')})"></i>`;
+        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"><div class="name">${ch.name}</div><i class="fas fa-star star-btn"></i>`;
         d.onclick = () => play(ch.url, ch.name, ch.logo);
         listArea.appendChild(d);
     });
 }
 
-async function toggleFull(e) {
-    if(e) e.stopPropagation();
-    if (!document.fullscreenElement) {
-        await playerArea.requestFullscreen();
-        video.style.objectFit = 'fill';
-        if (screen.orientation?.lock) screen.orientation.lock('landscape').catch(()=>{});
-    } else {
-        document.exitFullscreen();
-        video.style.objectFit = 'contain';
-    }
+// কন্ট্রোল হাইড লজিক - ডাবল ট্যাপ ও ৩ সেকেন্ড
+function hideAllUI() {
+    controls.classList.remove('show');
+    popMenu.style.display = 'none';
 }
 
-function showScalingMenu(e) { e.stopPropagation(); popMenu.innerHTML = `<button onclick="setScaling('contain')">Fit Screen</button><button onclick="setScaling('fill')">Zoom to Fill</button><button onclick="setScaling('cover')">Stretch 16:9</button>`; popMenu.style.display = 'flex'; }
-function setScaling(t) { video.style.objectFit = t; popMenu.style.display = 'none'; }
-function showQualityMenu(e) { e.stopPropagation(); popMenu.innerHTML = `<button onclick="setQuality(-1)">Auto Quality</button>`; if(hls.levels) hls.levels.forEach((l, i) => popMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p Resolution</button>`); popMenu.style.display = 'flex'; }
-function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
-function togglePlay(e) { if(e) e.stopPropagation(); video.paused ? (video.play(), document.getElementById('pp').className="fas fa-pause") : (video.pause(), document.getElementById('pp').className="fas fa-play"); }
-
-// Swipe Controls
-let startY, startVal, isLeft;
-playerArea.addEventListener('touchstart', e => {
-    startY = e.touches[0].clientY;
-    isLeft = e.touches[0].clientX < playerArea.clientWidth / 2;
-    startVal = isLeft ? brightness : video.volume;
-});
-playerArea.addEventListener('touchmove', e => {
-    e.preventDefault();
-    let delta = (startY - e.touches[0].clientY) / 150;
-    const hud = document.getElementById('hud'), icon = document.getElementById('hudIcon'), val = document.getElementById('hudValue');
-    hud.style.display = 'block';
-    if(isLeft) {
-        brightness = Math.min(Math.max(startVal + delta, 0.3), 1.8);
-        playerArea.style.filter = `brightness(${brightness})`;
-        icon.className = 'fas fa-sun'; val.innerText = Math.round(brightness * 50) + "%";
-    } else {
-        let v = Math.min(Math.max(startVal + delta, 0), 1);
-        video.volume = v;
-        icon.className = v === 0 ? 'fas fa-volume-mute' : 'fas fa-volume-up'; val.innerText = Math.round(v * 100) + "%";
+playerArea.addEventListener('click', (e) => {
+    let now = Date.now();
+    if (now - lastTap < 300) { // Double Tap
+        hideAllUI();
+    } else { // Single Tap
+        if(popMenu.style.display === 'flex') {
+            popMenu.style.display = 'none';
+        } else {
+            controls.classList.toggle('show');
+            clearTimeout(hideTimeout);
+            if(controls.classList.contains('show')) hideTimeout = setTimeout(hideAllUI, 3000);
+        }
     }
+    lastTap = now;
 });
-playerArea.addEventListener('touchend', () => setTimeout(()=> document.getElementById('hud').style.display='none', 800));
 
+function showScalingMenu(e) {
+    e.stopPropagation();
+    popMenu.style.right = 'auto'; popMenu.style.left = '10px'; // পজিশন ফিক্স
+    popMenu.innerHTML = `<button onclick="setScaling('contain')">Fit Screen</button><button onclick="setScaling('cover')">Zoom Fill</button><button onclick="setScaling('fill')">Stretch</button>`;
+    popMenu.style.display = 'flex';
+}
+
+function showQualityMenu(e) {
+    e.stopPropagation();
+    popMenu.style.left = 'auto'; popMenu.style.right = '10px'; // পজিশন ফিক্স
+    popMenu.innerHTML = `<button onclick="setQuality(-1)">Auto</button>`;
+    if(hls.levels) hls.levels.forEach((l, i) => popMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p</button>`);
+    popMenu.style.display = 'flex';
+}
+
+function setScaling(t) { video.style.objectFit = t; popMenu.style.display = 'none'; }
+function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
+function togglePlay(e) { e.stopPropagation(); video.paused ? video.play() : video.pause(); }
+video.onplay = () => document.getElementById('pp').className = "fas fa-pause";
+video.onpause = () => document.getElementById('pp').className = "fas fa-play";
+
+function toggleFull(e) {
+    e.stopPropagation();
+    if (!document.fullscreenElement) playerArea.requestFullscreen();
+    else document.exitFullscreen();
+}
+
+// ইনিশিয়াল সেটিংস
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
 if(playlistUrl) {
     fetch(playlistUrl).then(r=>r.text()).then(data => {
@@ -247,9 +233,10 @@ if(playlistUrl) {
             }
         });
         render();
-        if(allChannels[0]) play(allChannels[0].url, allChannels[0].name, allChannels[0].logo);
     });
 }
+window.onresize = () => { canvas.width = playerArea.clientWidth; canvas.height = playerArea.clientHeight; };
+window.dispatchEvent(new Event('resize'));
 </script>
 </body>
 </html>
