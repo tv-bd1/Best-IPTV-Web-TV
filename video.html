@@ -16,40 +16,65 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 .player-wrap { position: relative; width: 100%; background: #000; aspect-ratio: 16/9; flex-shrink: 0; overflow: hidden; }
 video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none; }
 
-/* AUDIO VISUALIZER ANIMATION */
-#audioAnim { position: absolute; inset: 0; display: none; align-items: flex-end; justify-content: center; gap: 4px; background: #050505; z-index: 4; padding-bottom: 30px; }
-.v-bar { width: 8px; background: linear-gradient(to top, var(--accent), #fff); border-radius: 5px; animation: jump 0.5s infinite alternate; }
-@keyframes jump { 0% { height: 10%; } 100% { height: 70%; } }
+/* অডিও ভিজ্যুয়ালাইজার - পুরো স্ক্রিন জুড়ে লম্বায় লাফাবে */
+#audioAnim { 
+    position: absolute; 
+    inset: 0; 
+    display: none; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 6px; 
+    background: #050505; 
+    z-index: 4; 
+}
+.v-bar { 
+    width: 10px; 
+    background: linear-gradient(to top, var(--accent), #fff); 
+    border-radius: 50px; 
+    animation: jump 0.6s infinite alternate; 
+}
+@keyframes jump { 
+    0% { height: 10%; opacity: 0.3; } 
+    100% { height: 90%; opacity: 1; } 
+}
 
 /* BIG WHITE HUD */
 #hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; z-index: 1000; display: none; text-align: center; pointer-events: none; }
-#hud i { display: block; font-size: 5rem; color: #ffffff; margin-bottom: 10px; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); }
-#hud span { font-size: 2rem; font-weight: bold; }
+#hud i { display: block; font-size: 5rem; color: #ffffff; filter: drop-shadow(0 0 15px rgba(0,0,0,0.5)); }
 
-/* CONTROLS (Initially Hidden) */
+/* CONTROLS */
 .controls-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.5); opacity: 0; visibility: hidden; transition: 0.4s; z-index: 100; display: flex; flex-direction: column; justify-content: flex-end; }
 .controls-overlay.show { opacity: 1; visibility: visible; }
 .bottom-bar { padding: 15px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-between; align-items: center; }
 .mini-btns, .right-side { display: flex; align-items: center; gap: 20px; }
 .mini-btns i, .right-side i { font-size: 1.6rem; cursor: pointer; color: #fff; }
-.zoom-frame-btn { border: 2.5px solid #fff; border-radius: 4px; padding: 2px 4px !important; font-size: 1.2rem !important; }
 
-/* POPUP MENU (Blackish Background) */
-.pop-menu { position: absolute; bottom: 75px; right: 15px; background: rgba(15, 15, 15, 0.95); border: 1px solid #333; border-radius: 12px; display: none; flex-direction: column; z-index: 150; min-width: 160px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); }
+/* পপ-আপ মেনু পজিশন ফিক্স */
+.pop-menu { 
+    position: absolute; 
+    bottom: 70px; 
+    background: rgba(15, 15, 15, 0.98); 
+    border: 1px solid #333; 
+    border-radius: 12px; 
+    display: none; 
+    flex-direction: column; 
+    z-index: 150; 
+    min-width: 160px; 
+    box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+    overflow: hidden;
+}
 .pop-menu button { background: none; border: none; color: white; padding: 14px 18px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 14px; }
-.pop-menu button:last-child { border: none; }
+.pop-menu button:hover { background: var(--accent); color: #000; }
 
-/* HIGHLIGHTED INFO AREA (Redesigned) */
-.info { padding: 18px 20px; display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; border-bottom: 2px solid #1a1a1a; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-.info-left { display:flex; align-items:center; gap:15px; }
-.mini-logo { width: 55px; height: 55px; border-radius: 12px; object-fit: cover; border: 2px solid #222; background: #111; padding: 2px; box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); }
-#title { font-size: 19px; color: #fff; font-weight: 600; letter-spacing: 0.5px; }
-#count { font-size: 13px; color: var(--accent); background: rgba(0,229,255,0.1); padding: 5px 15px; border-radius: 30px; border: 1px solid rgba(0,229,255,0.4); font-weight: bold; }
+/* INFO AREA */
+.info { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background: #0a0a0a; border-bottom: 2px solid #1a1a1a; }
+.mini-logo { width: 50px; height: 50px; border-radius: 10px; object-fit: cover; border: 1px solid #333; }
 
-/* TAB ACTIONS */
-.actions { display: flex; padding: 15px 0; background: #000; border-bottom: 1px solid #1a1a1a; }
-.actions div { flex: 1; text-align: center; font-size: 0.95rem; color: #eee; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
-#favBtnTab.active-tab { color: var(--accent) !important; font-weight: bold; }
+/* TAB ACTIONS - সিলেক্ট কালার ফিক্স */
+.actions { display: flex; padding: 12px 0; background: #000; border-bottom: 1px solid #1a1a1a; }
+.actions div { flex: 1; text-align: center; font-size: 0.95rem; color: #888; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
+.actions div i { font-size: 1.1rem; }
+.actions div.active-tab { color: var(--accent) !important; font-weight: bold; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
 
 /* LIST */
 .list { flex: 1; overflow-y: auto; padding: 12px; background: var(--bg); padding-bottom: 80px; }
@@ -57,7 +82,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 .row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.08); }
 .list-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
 .name { flex: 1; font-size: 1rem; color: #fff; }
-.star-btn { font-size: 1.3rem; color: #333; padding: 5px; transition: 0.3s; }
+.star-btn { font-size: 1.3rem; color: #333; padding: 5px; }
 .star-btn.is-fav { color: var(--fav) !important; }
 </style>
 </head>
@@ -65,11 +90,8 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 
 <div class="player-wrap" id="playerArea" onclick="handlePlayerClick()">
     <div id="audioAnim"></div>
-    
-    <div id="hud"><i id="hudIcon"></i><span id="hudValue">0%</span></div>
-    
+    <div id="hud"><i id="hudIcon"></i><br><span id="hudValue">0%</span></div>
     <video id="video" playsinline crossorigin="anonymous"></video>
-    
     <div class="pop-menu" id="popMenu"></div>
     
     <div class="controls-overlay" id="controls">
@@ -79,31 +101,25 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
                 <i class="fas fa-redo" onclick="location.reload()"></i>
             </div>
             <div class="right-side">
-                <i class="fas fa-sliders-h" onclick="showScalingMenu(event)"></i>
-                <i class="fas fa-cog" onclick="showQualityMenu(event)"></i>
-                <i class="fas fa-expand zoom-frame-btn" onclick="toggleFull(event)"></i>
+                <i class="fas fa-sliders-h" id="scaleBtn" onclick="showScalingMenu(event)"></i>
+                <i class="fas fa-cog" id="qualityBtn" onclick="showQualityMenu(event)"></i>
+                <i class="fas fa-expand" onclick="toggleFull(event)"></i>
             </div>
         </div>
     </div>
 </div>
 
 <div class="info">
-    <div class="info-left">
+    <div style="display:flex; align-items:center; gap:12px;">
         <img id="currentLogo" class="mini-logo" src="https://i.imgur.com/8Qf6Y0L.png">
-        <div>
-            <h3 id="title">Select Channel</h3>
-            <div style="display:flex; align-items:center; gap:6px;">
-                <span style="width:8px; height:8px; background:red; border-radius:50%; display:inline-block; animation: pulse 1s infinite;"></span>
-                <small style="color:var(--accent); font-weight:bold; letter-spacing: 1px; text-transform: uppercase;">Live Now</small>
-            </div>
-        </div>
+        <div><h3 id="title">Select Channel</h3><small style="color:var(--accent);">LIVE STREAM</small></div>
     </div>
     <div id="count">0 CH</div>
 </div>
 
 <div class="actions">
-    <div id="allBtnTab" onclick="switchTab('all', this)"><i class="fas fa-list"></i> All List</div>
-    <div id="favBtnTab" onclick="switchTab('fav', this)"><i class="fas fa-star" style="color: gold;"></i> My List</div>
+    <div id="allBtnTab" class="active-tab" onclick="switchTab('all', this)"><i class="fas fa-list"></i> All List</div>
+    <div id="favBtnTab" onclick="switchTab('fav', this)"><i class="fas fa-star"></i> My List</div>
     <div onclick="window.open('https://t.me/bestiptvlive')"><i class="fab fa-telegram-plane"></i> Telegram</div>
 </div>
 
@@ -113,27 +129,24 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), audioAnim=document.getElementById('audioAnim');
 let hls=new Hls(), allChannels=[], isFavView=false, hideTimeout, brightness=1;
 
-// ভিজ্যুয়ালাইজার বার তৈরি করা
-for(let i=0; i<15; i++) {
+// অডিও ভিজুয়ালাইজার বার তৈরি
+for(let i=0; i<25; i++) {
     let bar = document.createElement('div');
     bar.className = 'v-bar';
-    bar.style.animationDelay = (Math.random()*0.5)+'s';
+    bar.style.animationDelay = (Math.random()*0.8)+'s';
     audioAnim.appendChild(bar);
 }
 
 function handlePlayerClick() {
-    if(popMenu.style.display === 'flex') {
-        popMenu.style.display = 'none';
-        return;
-    }
-    controls.classList.add('show');
+    if(popMenu.style.display === 'flex') { popMenu.style.display = 'none'; return; }
+    controls.classList.toggle('show');
     clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(() => controls.classList.remove('show'), 3000);
+    if(controls.classList.contains('show')) hideTimeout = setTimeout(() => controls.classList.remove('show'), 3000);
 }
 
 function switchTab(type, el) {
     document.querySelectorAll('.actions div').forEach(d => d.classList.remove('active-tab'));
-    if(type === 'fav') el.classList.add('active-tab');
+    el.classList.add('active-tab');
     isFavView = (type === 'fav');
     render();
 }
@@ -142,9 +155,14 @@ function play(url, name, logo) {
     document.getElementById('title').innerText = name;
     document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
     
-    // অডিও চ্যানেল চেক
-    const isAudio = !url.includes('.m3u8') && (url.includes('radio') || url.includes('.mp3'));
-    audioAnim.style.display = isAudio ? 'flex' : 'none';
+    // ভিডিও লোড হওয়ার পর চেক করা ভিডিও আছে কি না
+    video.onloadedmetadata = () => {
+        if (video.videoHeight === 0) {
+            audioAnim.style.display = 'flex';
+        } else {
+            audioAnim.style.display = 'none';
+        }
+    };
 
     if(url.includes('.m3u8')){
         hls.destroy(); hls = new Hls();
@@ -152,15 +170,6 @@ function play(url, name, logo) {
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
     } else { hls.destroy(); video.src = url; video.play(); }
     document.getElementById('pp').className = "fas fa-pause";
-    render();
-}
-
-function toggleFav(e, ch) {
-    e.stopPropagation();
-    let f = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
-    let i = f.findIndex(x => x.url === ch.url);
-    if(i > -1) f.splice(i, 1); else f.push(ch);
-    localStorage.setItem('my_iptv_favs', JSON.stringify(f));
     render();
 }
 
@@ -180,6 +189,40 @@ function render() {
     });
 }
 
+function toggleFav(e, ch) {
+    e.stopPropagation();
+    let f = JSON.parse(localStorage.getItem('my_iptv_favs') || "[]");
+    let i = f.findIndex(x => x.url === ch.url);
+    if(i > -1) f.splice(i, 1); else f.push(ch);
+    localStorage.setItem('my_iptv_favs', JSON.stringify(f));
+    render();
+}
+
+// পপ-আপ মেনু পজিশন ফিক্স
+function showScalingMenu(e) {
+    e.stopPropagation();
+    const btn = document.getElementById('scaleBtn').getBoundingClientRect();
+    const player = playerArea.getBoundingClientRect();
+    popMenu.style.left = (btn.left - player.left) + "px";
+    popMenu.style.right = "auto";
+    popMenu.innerHTML = `<button onclick="setScaling('contain')">Fit Screen</button><button onclick="setScaling('fill')">Zoom Fill</button><button onclick="setScaling('cover')">Stretch 16:9</button>`;
+    popMenu.style.display = 'flex';
+}
+
+function showQualityMenu(e) {
+    e.stopPropagation();
+    const btn = document.getElementById('qualityBtn').getBoundingClientRect();
+    const player = playerArea.getBoundingClientRect();
+    popMenu.style.left = "auto";
+    popMenu.style.right = (player.right - btn.right) + "px";
+    popMenu.innerHTML = `<button onclick="setQuality(-1)">Auto Quality</button>`;
+    if(hls.levels) hls.levels.forEach((l, i) => popMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p Quality</button>`);
+    popMenu.style.display = 'flex';
+}
+
+function setScaling(t) { video.style.objectFit = t; popMenu.style.display = 'none'; }
+function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
+
 async function toggleFull(e) {
     if(e) e.stopPropagation();
     if (!document.fullscreenElement) {
@@ -192,20 +235,16 @@ async function toggleFull(e) {
     }
 }
 
-function showScalingMenu(e) { e.stopPropagation(); popMenu.innerHTML = `<button onclick="setScaling('contain')">Fit Screen</button><button onclick="setScaling('fill')">Zoom to Fill</button><button onclick="setScaling('cover')">Stretch 16:9</button>`; popMenu.style.display = 'flex'; }
-function setScaling(t) { video.style.objectFit = t; popMenu.style.display = 'none'; }
-function showQualityMenu(e) { e.stopPropagation(); popMenu.innerHTML = `<button onclick="setQuality(-1)">Auto Quality</button>`; if(hls.levels) hls.levels.forEach((l, i) => popMenu.innerHTML += `<button onclick="setQuality(${i})">${l.height || i}p Resolution</button>`); popMenu.style.display = 'flex'; }
-function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
-function togglePlay(e) { if(e) e.stopPropagation(); video.paused ? (video.play(), document.getElementById('pp').className="fas fa-pause") : (video.pause(), document.getElementById('pp').className="fas fa-play"); }
-
-// Swipe Controls
+// Swipe Controls (শুধুমাত্র ফুলস্ক্রিনে কাজ করবে)
 let startY, startVal, isLeft;
 playerArea.addEventListener('touchstart', e => {
+    if (!document.fullscreenElement) return;
     startY = e.touches[0].clientY;
     isLeft = e.touches[0].clientX < playerArea.clientWidth / 2;
     startVal = isLeft ? brightness : video.volume;
 });
 playerArea.addEventListener('touchmove', e => {
+    if (!document.fullscreenElement) return;
     e.preventDefault();
     let delta = (startY - e.touches[0].clientY) / 150;
     const hud = document.getElementById('hud'), icon = document.getElementById('hudIcon'), val = document.getElementById('hudValue');
@@ -222,6 +261,9 @@ playerArea.addEventListener('touchmove', e => {
 });
 playerArea.addEventListener('touchend', () => setTimeout(()=> document.getElementById('hud').style.display='none', 800));
 
+function togglePlay(e) { if(e) e.stopPropagation(); video.paused ? (video.play(), document.getElementById('pp').className="fas fa-pause") : (video.pause(), document.getElementById('pp').className="fas fa-play"); }
+
+// প্লেলিস্ট লোড
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
 if(playlistUrl) {
     fetch(playlistUrl).then(r=>r.text()).then(data => {
