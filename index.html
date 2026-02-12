@@ -1,369 +1,314 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Best IPTV PRO | Desktop Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        :root {
-            --bg: #050505;
-            --sidebar: #111111;
-            --card: #1a1a1a;
-            --accent: #00d2ff;
-            --accent-grad: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
-            --text: #ffffff;
-            --text-dim: #a0a0a0;
-            --border: #222222;
-            --danger: #ff4757;
-            --success: #2ed573;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate IPTV Player PRO - Desktop Edition</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        
-        body { 
-            background: var(--bg); 
-            color: var(--text); 
-            height: 100vh; 
-            display: flex; 
-            overflow: hidden;
-        }
+<style>
+:root { 
+    --bg: #050505; 
+    --sidebar: #111111; 
+    --card: #1a1a1a; 
+    --accent: #00E5FF; 
+    --fav: #FFD700; 
+    --text: #ffffff; 
+}
 
-        /* SIDEBAR NAVIGATION */
-        .sidebar {
-            width: 280px;
-            background: var(--sidebar);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            padding: 30px 20px;
-            z-index: 100;
-        }
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+body { background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
 
-        .app-logo { 
-            display: flex; 
-            align-items: center; 
-            gap: 15px; 
-            margin-bottom: 40px;
-            padding-left: 10px;
-        }
-        .app-logo i { font-size: 2.2rem; color: var(--accent); }
-        .app-name { font-size: 1.5rem; font-weight: 800; background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+/* PC LAYOUT */
+.main-wrapper { display: flex; width: 100%; height: 100vh; }
 
-        .nav-menu { flex: 1; }
-        .nav-item {
-            display: flex; align-items: center; gap: 15px;
-            padding: 14px 18px; border-radius: 12px;
-            color: var(--text-dim); text-decoration: none;
-            margin-bottom: 10px; transition: 0.3s; cursor: pointer;
-        }
-        .nav-item:hover, .nav-item.active {
-            background: rgba(0, 210, 255, 0.1);
-            color: var(--accent);
-        }
+/* LEFT: PLAYER SECTION */
+.player-section { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
 
-        /* MAIN DASHBOARD */
-        .main-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
+.player-wrap { 
+    position: relative; 
+    width: 100%; 
+    flex: 1; 
+    background: #000; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    overflow: hidden; 
+}
+video { width: 100%; height: 100%; object-fit: contain; z-index: 5; }
 
-        .top-bar {
-            height: 80px;
-            padding: 0 40px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-        }
+/* RIGHT: SIDEBAR SECTION */
+.sidebar { 
+    width: 400px; 
+    background: var(--sidebar); 
+    border-left: 1px solid #222; 
+    display: flex; 
+    flex-direction: column; 
+    z-index: 100;
+}
 
-        .search-wrapper {
-            width: 400px;
-            position: relative;
-        }
-        .search-wrapper i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
-        .search-input {
-            width: 100%; background: var(--card); border: 1px solid var(--border);
-            padding: 12px 12px 12px 45px; border-radius: 12px; color: var(--text); outline: none;
-        }
+/* LOADER & AUDIO VISUALIZER */
+#loader { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); z-index: 200; }
+.spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .content-area {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-        }
+#audioAnim { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; gap: 6px; background: #080808; z-index: 4; }
+.v-bar { width: 8px; background: linear-gradient(to top, var(--accent), #fff); border-radius: 50px; animation: jump 0.6s infinite alternate; }
+@keyframes jump { 0% { height: 10%; opacity: 0.3; } 100% { height: 70%; opacity: 1; } }
 
-        .grid-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 30px;
-        }
-        .grid-title h1 { font-size: 1.8rem; margin-bottom: 5px; }
-        .grid-title p { color: var(--text-dim); font-size: 0.9rem; }
+/* HUD FOR SWIPE/PC SCROLL */
+#hud { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; z-index: 1000; display: none; text-align: center; background: rgba(0,0,0,0.6); padding: 25px; border-radius: 20px; pointer-events: none; border: 1px solid var(--accent); }
+#hud i { display: block; font-size: 3.5rem; margin-bottom: 10px; color: var(--accent); }
 
-        .playlist-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 25px;
-        }
+/* CONTROLS OVERLAY */
+.controls-overlay { 
+    position: absolute; inset: 0; background: rgba(0,0,0,0.4); opacity: 0; visibility: hidden; 
+    transition: 0.3s; z-index: 150; display: flex; flex-direction: column; justify-content: flex-end; 
+}
+.player-wrap:hover .controls-overlay { opacity: 1; visibility: visible; }
 
-        /* PLAYLIST CARD */
-        .playlist-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 25px;
-            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            cursor: pointer;
-        }
-        .playlist-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--accent);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
-        }
+.bottom-bar { padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-between; align-items: center; }
+.ctrl-group { display: flex; align-items: center; gap: 25px; }
+.ctrl-group i { font-size: 1.6rem; cursor: pointer; color: #fff; transition: 0.2s; }
+.ctrl-group i:hover { color: var(--accent); transform: scale(1.2); }
 
-        .card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-        .card-icon {
-            width: 60px; height: 60px; background: var(--accent-grad);
-            border-radius: 18px; display: flex; align-items: center;
-            justify-content: center; font-size: 1.5rem; color: white;
-            box-shadow: 0 8px 20px rgba(0,210,255,0.2);
-        }
+/* POP-UP MENU */
+.pop-menu { position: absolute; bottom: 85px; right: 20px; background: rgba(20, 20, 20, 0.95); border: 1px solid #333; border-radius: 12px; display: none; flex-direction: column; z-index: 200; min-width: 180px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.pop-menu button { background: none; border: none; color: white; padding: 14px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 0.9rem; }
+.pop-menu button:hover { background: var(--accent); color: #000; }
 
-        .card-info h3 { font-size: 1.2rem; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
-        .badge {
-            display: inline-flex; align-items: center; gap: 5px;
-            font-size: 0.7rem; padding: 5px 12px; border-radius: 20px;
-            font-weight: 700; text-transform: uppercase;
-        }
-        .badge-official { background: rgba(0, 210, 255, 0.1); color: var(--accent); }
-        .badge-user { background: rgba(46, 213, 115, 0.1); color: var(--success); }
+/* CHANNEL INFO & TABS */
+.info-header { padding: 20px; background: #151515; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 15px; }
+.current-logo { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; border: 2px solid #333; }
 
-        .card-footer {
-            margin-top: 20px; padding-top: 20px;
-            border-top: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-        }
+.tabs { display: flex; background: #111; border-bottom: 1px solid #222; }
+.tabs div { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #666; font-weight: 600; transition: 0.3s; font-size: 0.9rem; }
+.tabs div.active-tab { color: var(--accent); border-bottom: 3px solid var(--accent); background: rgba(0,229,255,0.05); }
 
-        .btn-play {
-            background: var(--accent-grad); color: white; border: none;
-            padding: 8px 20px; border-radius: 10px; font-weight: 600; cursor: pointer;
-        }
+/* LIST AREA */
+.list { flex: 1; overflow-y: auto; padding: 15px; background: var(--sidebar); }
+.list::-webkit-scrollbar { width: 6px; }
+.list::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
 
-        .btn-delete { color: var(--text-dim); cursor: pointer; transition: 0.3s; font-size: 1.1rem; }
-        .btn-delete:hover { color: var(--danger); transform: scale(1.2); }
+.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #222; cursor: pointer; transition: 0.2s; }
+.row:hover { background: #252525; border-color: #444; transform: translateX(5px); }
+.row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.08); }
+.list-logo { width: 50px; height: 50px; border-radius: 8px; object-fit: cover; }
+.name { flex: 1; font-size: 0.95rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.star-btn { font-size: 1.3rem; color: #333; transition: 0.2s; }
+.star-btn.is-fav { color: var(--fav); }
 
-        /* MODAL */
-        .modal-backdrop {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(10px); display: none; z-index: 1000;
-        }
-        .modal-content {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 500px; background: var(--card); border-radius: 25px;
-            border: 1px solid var(--border); padding: 40px; z-index: 1001; display: none;
-        }
-
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; color: var(--text-dim); font-size: 0.9rem; }
-        .form-input {
-            width: 100%; background: var(--bg); border: 1px solid var(--border);
-            padding: 14px; border-radius: 12px; color: white; outline: none;
-        }
-        .form-input:focus { border-color: var(--accent); }
-
-        .submit-btn {
-            width: 100%; background: var(--accent-grad); color: white; border: none;
-            padding: 15px; border-radius: 12px; font-weight: 700; cursor: pointer;
-            margin-top: 10px; font-size: 1rem;
-        }
-
-        .add-card-dash {
-            border: 2px dashed var(--border);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: var(--text-dim); cursor: pointer;
-        }
-        .add-card-dash:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,210,255,0.02); }
-
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
-    </style>
+/* PC SPECIFIC */
+#scaleBtn { display: inline-block; }
+</style>
 </head>
 <body>
 
-    <aside class="sidebar">
-        <div class="app-logo">
-            <i class="fas fa-play-circle"></i>
-            <div class="app-name">Best IPTV PRO</div>
-        </div>
-
-        <nav class="nav-menu">
-            <div class="nav-item active"><i class="fas fa-th-large"></i> Dashboard</div>
-            <div class="nav-item" onclick="openModal()"><i class="fas fa-plus-circle"></i> Add Playlist</div>
-        </nav>
-
-        <div style="padding: 20px; background: rgba(255,255,255,0.03); border-radius: 15px; font-size: 0.8rem; text-align: center;">
-            <p style="color: var(--text-dim);">V2.5 Desktop App</p>
-            <p style="font-weight: bold; color: var(--accent);">Premium Active</p>
-        </div>
-    </aside>
-
-    <div class="main-container">
-        <header class="top-bar">
-            <div class="search-wrapper">
-                <i class="fas fa-search"></i>
-                <input type="text" class="search-input" id="searchInput" placeholder="Search your library...">
-            </div>
-            <div style="display: flex; gap: 20px; align-items: center;">
-                <span id="pCountTop" style="font-weight: bold; color: var(--accent);">0 Playlists</span>
-                <img src="https://ui-avatars.com/api/?name=IPTV&background=00d2ff&color=fff" style="width: 40px; border-radius: 10px;">
-            </div>
-        </header>
-
-        <main class="content-area">
-            <div class="grid-header">
-                <div class="grid-title">
-                    <h1>My Library</h1>
-                    <p>Manage and stream your premium M3U collections</p>
-                </div>
-                <button onclick="openModal()" class="submit-btn" style="width: auto; padding: 10px 25px;">+ Add Playlist</button>
-            </div>
-
-            <div class="playlist-grid" id="playlistGrid"></div>
-        </main>
-    </div>
-
-    <div class="modal-backdrop" id="backdrop" onclick="closeModal()"></div>
-    <div class="modal-content" id="modal">
-        <h2 style="margin-bottom: 25px;">Add New Playlist</h2>
-        <form id="pForm">
-            <div class="form-group">
-                <label>Playlist Name</label>
-                <input type="text" class="form-input" id="pName" placeholder="Example: Movies Pack" required>
-            </div>
-            <div class="form-group">
-                <label>M3U URL</label>
-                <input type="url" class="form-input" id="pUrl" placeholder="https://example.com/list.m3u">
-            </div>
-            <div style="text-align: center; margin: 15px 0; color: var(--text-dim);">-- OR --</div>
-            <div class="form-group">
-                <label>Upload File</label>
-                <input type="file" id="pFile" accept=".m3u,.m3u8" style="display: none;" onchange="updateFileName(this)">
-                <div onclick="document.getElementById('pFile').click()" style="border: 1px dashed var(--border); padding: 15px; text-align: center; border-radius: 12px; cursor: pointer;" id="fileLabel">
-                    <i class="fas fa-file-upload"></i> Click to upload .m3u
-                </div>
-            </div>
-            <button type="submit" class="submit-btn">Save to Library</button>
-        </form>
-    </div>
-
-    <script>
-        const playlistGrid = document.getElementById('playlistGrid');
-        const searchInput = document.getElementById('searchInput');
-
-        const defaultServers = [
-            { id: 's1', name: "Live Sports Global", url: "Sports.m3u", type: "default" },
-            { id: 's2', name: "Entertainment HD", url: "All.m3u", type: "default" },
-            { id: 's3', name: "International Radio", url: "FMRadio.m3u", type: "default" }
-        ];
-
-        function render(filter = '') {
-            const saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
-            const all = [...defaultServers, ...saved];
-            const filtered = all.filter(p => p.name.toLowerCase().includes(filter.toLowerCase()));
+<div class="main-wrapper">
+    <div class="player-section">
+        <div class="player-wrap" id="playerArea">
+            <div id="loader"><div class="spinner"></div></div>
+            <div id="audioAnim"></div>
+            <div id="hud"><i id="hudIcon"></i><span id="hudValue"></span></div>
             
-            playlistGrid.innerHTML = '';
-            document.getElementById('pCountTop').innerText = `${filtered.length} Playlists`;
-
-            // "Add New" Card
-            const addCard = document.createElement('div');
-            addCard.className = 'playlist-card add-card-dash';
-            addCard.onclick = openModal;
-            addCard.innerHTML = `<i class="fas fa-plus-circle" style="font-size: 2rem; margin-bottom: 10px;"></i><b>Add New Playlist</b>`;
-            playlistGrid.appendChild(addCard);
-
-            filtered.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'playlist-card';
-                card.innerHTML = `
-                    <div class="card-top">
-                        <div class="card-icon"><i class="fas fa-play"></i></div>
-                        <span class="badge ${p.type === 'default' ? 'badge-official' : 'badge-user'}">
-                            ${p.type === 'default' ? 'Official' : 'Personal'}
-                        </span>
+            <video id="video" playsinline crossorigin="anonymous"></video>
+            <div class="pop-menu" id="popMenu"></div>
+            
+            <div class="controls-overlay" id="controls">
+                <div class="bottom-bar">
+                    <div class="ctrl-group">
+                        <i class="fas fa-play" id="pp" onclick="togglePlay(event)"></i>
+                        <i class="fas fa-redo" onclick="location.reload()" title="Reload Player"></i>
+                        <span id="channelTitle" style="font-weight: bold; margin-left: 10px;">Select Channel</span>
                     </div>
-                    <div class="card-info">
-                        <h3>${p.name}</h3>
-                        <p style="font-size: 0.8rem; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis;">${p.url.substring(0, 30)}...</p>
+                    <div class="ctrl-group">
+                        <i class="fas fa-cog" title="Quality" onclick="showQualityMenu(event)"></i>
+                        <i class="fas fa-sliders-h" id="scaleBtn" title="Aspect Ratio" onclick="showScalingMenu(event)"></i>
+                        <i class="fas fa-expand" title="Full Screen" onclick="toggleFull(event)"></i>
                     </div>
-                    <div class="card-footer">
-                        <button class="btn-play" onclick="goToPlayer('${p.url}')">Watch Now</button>
-                        ${p.type !== 'default' ? `<i class="fas fa-trash-alt btn-delete" onclick="deleteItem(event, '${p.id}')"></i>` : '<i class="fas fa-check-circle" style="color:var(--accent)"></i>'}
-                    </div>
-                `;
-                card.onclick = () => goToPlayer(p.url);
-                playlistGrid.appendChild(card);
-            });
-        }
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-header" style="background: #0a0a0a;">
+            <img id="currentLogo" class="current-logo" src="https://i.imgur.com/8Qf6Y0L.png">
+            <div style="flex:1;">
+                <h3 id="title" style="font-size:1.3rem;">IPTV PRO Desktop</h3>
+                <small style="color:var(--accent); letter-spacing: 1px;">PREMIUM LIVE STREAMING</small>
+            </div>
+            <div id="count" style="font-weight: bold; opacity: 0.6;">0 CHANNELS</div>
+        </div>
+    </div>
 
-        function goToPlayer(url) {
-            window.location.href = `video.html?playlist=${encodeURIComponent(url)}`;
-        }
+    <div class="sidebar">
+        <div class="tabs">
+            <div id="allBtnTab" class="active-tab" onclick="switchTab('all', this)"><i class="fas fa-list-ul"></i> ALL LIST</div>
+            <div id="favBtnTab" onclick="switchTab('fav', this)"><i class="fas fa-star"></i> MY FAVORITES</div>
+        </div>
+        
+        <div class="list" id="list"></div>
 
-        function openModal() {
-            document.getElementById('modal').style.display = 'block';
-            document.getElementById('backdrop').style.display = 'block';
-        }
+        <div style="padding: 15px; border-top: 1px solid #222; text-align: center;">
+            <a href="https://t.me/bestiptvlive" target="_blank" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">
+                <i class="fab fa-telegram-plane"></i> Join Telegram Community
+            </a>
+        </div>
+    </div>
+</div>
 
-        function closeModal() {
-            document.getElementById('modal').style.display = 'none';
-            document.getElementById('backdrop').style.display = 'none';
-            document.getElementById('pForm').reset();
-            document.getElementById('fileLabel').innerHTML = '<i class="fas fa-file-upload"></i> Click to upload .m3u';
-        }
+<script>
+const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), audioAnim=document.getElementById('audioAnim'), loader=document.getElementById('loader');
+let hls=new Hls(), allChannels=[], isFavView=false, brightness=1;
 
-        function updateFileName(input) {
-            if(input.files.length > 0) {
-                document.getElementById('fileLabel').innerHTML = `<b>Selected:</b> ${input.files[0].name}`;
+// Create visualizer bars
+for(let i=0; i<25; i++) {
+    let bar = document.createElement('div');
+    bar.className = 'v-bar';
+    bar.style.animationDelay = (Math.random()*0.8)+'s';
+    audioAnim.appendChild(bar);
+}
+
+video.onwaiting = () => loader.style.display = 'flex';
+video.onplaying = () => {
+    loader.style.display = 'none';
+    audioAnim.style.display = (video.videoHeight === 0 && !video.paused) ? 'flex' : 'none';
+};
+
+function play(url, name, logo) {
+    loader.style.display = 'flex';
+    audioAnim.style.display = 'none';
+    document.getElementById('title').innerText = name;
+    document.getElementById('channelTitle').innerText = name;
+    document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
+    
+    if(url.includes('.m3u8')){
+        hls.destroy(); hls = new Hls();
+        hls.loadSource(url); hls.attachMedia(video);
+        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
+    } else { 
+        hls.destroy(); video.src = url; video.play(); 
+    }
+    document.getElementById('pp').className = "fas fa-pause";
+    render();
+}
+
+function render() {
+    let arr = isFavView ? JSON.parse(localStorage.getItem('iptv_pc_favs') || "[]") : allChannels;
+    listArea.innerHTML = "";
+    document.getElementById('count').innerText = arr.length + " CH";
+    arr.forEach(ch => {
+        const favs = JSON.parse(localStorage.getItem('iptv_pc_favs') || "[]");
+        const isFav = favs.some(f => f.url === ch.url);
+        const isActive = (video.src === ch.url || hls.url === ch.url);
+        const d = document.createElement('div');
+        d.className = `row ${isActive ? 'active' : ''}`;
+        d.innerHTML = `
+            <img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
+            <div class="name">${ch.name}</div>
+            <i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}" onclick="toggleFav(event, ${JSON.stringify(ch).replace(/"/g, '&quot;')})"></i>
+        `;
+        d.onclick = () => play(ch.url, ch.name, ch.logo);
+        listArea.appendChild(d);
+    });
+}
+
+function showScalingMenu(e) {
+    e.stopPropagation();
+    popMenu.innerHTML = `
+        <button onclick="setScaling('contain')">Original Aspect</button>
+        <button onclick="setScaling('fill')">Fill Screen</button>
+        <button onclick="setScaling('cover')">Stretch 16:9</button>
+    `;
+    popMenu.style.display = (popMenu.style.display !== 'flex') ? 'flex' : 'none';
+}
+
+function showQualityMenu(e) {
+    e.stopPropagation();
+    let html = `<button onclick="setQuality(-1)">Auto Quality</button>`;
+    if(hls.levels) hls.levels.forEach((l, i) => html += `<button onclick="setQuality(${i})">${l.height || i}p Quality</button>`);
+    popMenu.innerHTML = html;
+    popMenu.style.display = (popMenu.style.display !== 'flex') ? 'flex' : 'none';
+}
+
+function setScaling(t) { video.style.objectFit = t; popMenu.style.display = 'none'; }
+function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
+
+async function toggleFull(e) {
+    if(e) e.stopPropagation();
+    if (!document.fullscreenElement) {
+        await playerArea.requestFullscreen();
+        video.style.objectFit = 'contain';
+    } else { 
+        document.exitFullscreen(); 
+    }
+}
+
+function togglePlay(e) { 
+    if(e) e.stopPropagation(); 
+    if (video.paused) {
+        video.play();
+        document.getElementById('pp').className="fas fa-pause";
+    } else {
+        video.pause();
+        document.getElementById('pp').className="fas fa-play";
+    }
+}
+
+function switchTab(type, el) {
+    document.querySelectorAll('.tabs div').forEach(d => d.classList.remove('active-tab'));
+    el.classList.add('active-tab');
+    isFavView = (type === 'fav');
+    render();
+}
+
+function toggleFav(e, ch) {
+    e.stopPropagation();
+    let favs = JSON.parse(localStorage.getItem('iptv_pc_favs') || "[]");
+    const index = favs.findIndex(f => f.url === ch.url);
+    if (index > -1) favs.splice(index, 1); else favs.push(ch);
+    localStorage.setItem('iptv_pc_favs', JSON.stringify(favs));
+    render();
+}
+
+// PC WHEEL & SWIPE CONTROLS (Brightness & Volume)
+playerArea.onwheel = (e) => {
+    e.preventDefault();
+    const hud = document.getElementById('hud'), icon = document.getElementById('hudIcon'), val = document.getElementById('hudValue');
+    hud.style.display = 'block';
+    
+    if (e.clientX < playerArea.clientWidth / 2) {
+        // Brightness Control
+        brightness = Math.min(Math.max(brightness + (e.deltaY < 0 ? 0.05 : -0.05), 0.3), 1.8);
+        playerArea.style.filter = `brightness(${brightness})`;
+        icon.className = 'fas fa-sun'; val.innerText = Math.round(brightness * 50) + "%";
+    } else {
+        // Volume Control
+        let v = Math.min(Math.max(video.volume + (e.deltaY < 0 ? 0.05 : -0.05), 0), 1);
+        video.volume = v;
+        icon.className = v === 0 ? 'fas fa-volume-mute' : 'fas fa-volume-up'; val.innerText = Math.round(v * 100) + "%";
+    }
+    clearTimeout(window.hudT);
+    window.hudT = setTimeout(() => hud.style.display = 'none', 1000);
+};
+
+// URL Playlist Fetch
+const playlistUrl = new URLSearchParams(location.search).get('playlist');
+if(playlistUrl) {
+    fetch(playlistUrl).then(r=>r.text()).then(data => {
+        let lines=data.split('\n'), c={};
+        lines.forEach(l => {
+            if(l.startsWith('#EXTINF')){
+                c.name = l.split(',')[1]?.trim();
+                c.logo = l.match(/tvg-logo="([^"]*)"/)?.[1];
+            } else if(l.startsWith('http')) {
+                c.url = l.trim(); allChannels.push({...c}); c={};
             }
-        }
-
-        function deleteItem(e, id) {
-            e.stopPropagation();
-            if(confirm("Remove this playlist?")) {
-                let saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
-                saved = saved.filter(x => x.id !== id);
-                localStorage.setItem('user_playlists', JSON.stringify(saved));
-                render(searchInput.value);
-            }
-        }
-
-        searchInput.oninput = (e) => render(e.target.value);
-
-        document.getElementById('pForm').onsubmit = (e) => {
-            e.preventDefault();
-            const url = document.getElementById('pUrl').value;
-            const name = document.getElementById('pName').value;
-            const file = document.getElementById('pFile').files[0];
-
-            let newEntry = { id: Date.now().toString(), name: name, type: 'user' };
-            if (file) newEntry.url = URL.createObjectURL(file);
-            else if (url) newEntry.url = url;
-            else return alert("Provide URL or File");
-
-            const saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
-            saved.push(newEntry);
-            localStorage.setItem('user_playlists', JSON.stringify(saved));
-            render();
-            closeModal();
-        };
-
+        });
         render();
-    </script>
+        if(allChannels[0]) play(allChannels[0].url, allChannels[0].name, allChannels[0].logo);
+    });
+}
+</script>
 </body>
 </html>
