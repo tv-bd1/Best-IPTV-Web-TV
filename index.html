@@ -7,70 +7,84 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         :root {
-            --bg: #0b0e14;
-            --sidebar: #151921;
-            --card: #1c222d;
-            --accent: #00d2ff;
-            --accent-grad: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
-            --text: #ffffff;
-            --text-dim: #94a3b8;
-            --border: rgba(255, 255, 255, 0.08);
-            --danger: #ff4757;
-            --success: #2ed573;
-            --glass: rgba(255, 255, 255, 0.03);
-        }
-
-        [data-theme="light"] {
+            /* Light Mode (Default) */
             --bg: #f8fafc;
             --sidebar: #ffffff;
             --card: #ffffff;
+            --accent: #00d2ff;
+            --accent-grad: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
             --text: #0f172a;
             --text-dim: #64748b;
             --border: #e2e8f0;
-            --glass: rgba(0, 0, 0, 0.02);
+            --danger: #ff4757;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        [data-theme="dark"] {
+            /* Dark Mode */
+            --bg: #0b0e14;
+            --sidebar: #151921;
+            --card: #1c222d;
+            --text: #ffffff;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; transition: background 0.3s, color 0.3s; }
         body { background: var(--bg); color: var(--text); height: 100vh; display: flex; overflow: hidden; }
 
         /* SIDEBAR */
         .sidebar { width: 280px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 30px 20px; }
-        .app-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; padding-left: 10px; }
-        .app-logo i { font-size: 2.2rem; color: var(--accent); }
+        .app-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 40px; }
+        .app-logo i { font-size: 2rem; color: var(--accent); }
         .app-name { font-size: 1.4rem; font-weight: 800; background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         .nav-menu { flex: 1; }
-        .nav-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; margin: 20px 0 10px 10px; font-weight: 600; }
+        .nav-label { font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase; margin: 20px 0 10px 5px; font-weight: 700; }
+        
         .nav-item {
             display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px;
-            color: var(--text-dim); text-decoration: none; margin-bottom: 4px; transition: 0.2s; cursor: pointer;
+            color: var(--text-dim); text-decoration: none; margin-bottom: 5px; transition: 0.2s; cursor: pointer;
         }
-        .nav-item:hover, .nav-item.active { background: var(--glass); color: var(--accent); }
+        .nav-item:hover, .nav-item.active { background: rgba(0, 210, 255, 0.1); color: var(--accent); }
         .nav-item.active { background: var(--accent-grad); color: white; }
 
-        /* MAIN */
+        /* DARK MODE SWITCH */
+        .mode-switch {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 12px 16px; background: var(--bg); border-radius: 12px; margin-bottom: 10px; border: 1px solid var(--border);
+        }
+
+        /* TELEGRAM BUTTON */
+        .tg-btn {
+            background: #229ED9; color: white; text-decoration: none;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            padding: 12px; border-radius: 12px; font-weight: 600; margin-top: 10px;
+            transition: 0.3s;
+        }
+        .tg-btn:hover { background: #1c84b5; transform: scale(1.02); }
+
+        /* MAIN AREA */
         .main-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .top-bar { height: 80px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
-        .search-input { width: 350px; background: var(--card); border: 1px solid var(--border); padding: 12px 20px; border-radius: 12px; color: white; outline: none; }
-        .content-area { flex: 1; padding: 40px; overflow-y: auto; }
+        .top-bar { height: 70px; padding: 0 40px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+        .search-input { width: 300px; background: var(--card); border: 1px solid var(--border); padding: 10px 15px; border-radius: 10px; color: var(--text); outline: none; }
 
-        /* CARDS */
-        .playlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
-        .playlist-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 24px; position: relative; transition: 0.3s; cursor: pointer; }
-        .playlist-card:hover { transform: translateY(-5px); border-color: var(--accent); }
+        .content-area { flex: 1; padding: 30px; overflow-y: auto; }
+        .playlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
+        
+        .playlist-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 20px; position: relative; }
+        .card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; }
+        .action-icon { cursor: pointer; color: var(--text-dim); font-size: 0.9rem; }
+        .action-icon:hover { color: var(--accent); }
 
-        .fav-btn { position: absolute; top: 20px; right: 20px; font-size: 1.2rem; color: var(--text-dim); cursor: pointer; transition: 0.2s; }
-        .fav-btn.active { color: var(--danger); }
+        .btn-play { background: var(--accent-grad); color: white; border: none; padding: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 15px; }
 
-        .btn-play { background: var(--accent-grad); color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: 600; cursor: pointer; margin-top: 15px; width: 100%; }
-
-        /* MODAL */
-        .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(5px); display: none; z-index: 1000; }
-        .modal-content { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 450px; background: var(--card); border-radius: 20px; padding: 30px; border: 1px solid var(--border); display: none; z-index: 1001; }
-
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 8px; color: var(--text-dim); }
-        select, input { width: 100%; background: var(--bg); border: 1px solid var(--border); padding: 12px; border-radius: 10px; color: white; }
+        /* TOGGLE SWITCH UI */
+        .switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; inset: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body data-theme="dark">
@@ -80,20 +94,36 @@
             <i class="fas fa-play-circle"></i>
             <div class="app-name">Best IPTV PRO</div>
         </div>
+
         <nav class="nav-menu">
-            <div class="nav-label">Main</div>
-            <div class="nav-item active" id="btnHome"><i class="fas fa-columns"></i> Dashboard</div>
-            <div class="nav-item" id="btnFav"><i class="fas fa-heart"></i> Favorites</div>
-            <div class="nav-label">Settings</div>
-            <div class="nav-item" id="themeToggle"><i class="fas fa-adjust"></i> Theme</div>
-            <div class="nav-item" onclick="openPref()"><i class="fas fa-cog"></i> Preferences</div>
+            <div class="nav-label">Menu</div>
+            <div class="nav-item active" onclick="setView('all')" id="navAll"><i class="fas fa-grid-2"></i> Library</div>
+            <div class="nav-item" onclick="setView('fav')" id="navFav"><i class="fas fa-heart"></i> Favorites</div>
+            
+            <div class="nav-label">Settings & Community</div>
+            
+            <div class="mode-switch">
+                <span style="font-size: 0.9rem; font-weight: 500;"><i class="fas fa-moon"></i> Dark Mode</span>
+                <label class="switch">
+                    <input type="checkbox" id="darkModeToggle" checked onchange="toggleTheme()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <a href="https://t.me/bestiptvlive" target="_blank" class="tg-btn">
+                <i class="fab fa-telegram-plane"></i> Join Telegram
+            </a>
         </nav>
+
+        <div style="padding: 15px; background: rgba(0,210,255,0.05); border-radius: 12px; margin-top: 20px; font-size: 0.8rem; text-align: center;">
+            <p style="color: var(--text-dim);">Version 2.0.4 Update</p>
+        </div>
     </aside>
 
     <div class="main-container">
         <header class="top-bar">
-            <input type="text" class="search-input" id="searchInput" placeholder="Search playlist...">
-            <div id="statusHeader" style="font-weight: bold; color: var(--accent);">All Playlists</div>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search playlist..." oninput="render()">
+            <button onclick="openModal()" style="background: var(--accent-grad); color: white; border: none; padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: 600;">+ Add New</button>
         </header>
 
         <main class="content-area">
@@ -101,119 +131,134 @@
         </main>
     </div>
 
-    <div class="modal-backdrop" id="backdrop" onclick="closeModals()"></div>
-    <div class="modal-content" id="prefModal">
-        <h2 style="margin-bottom: 20px;">App Preferences</h2>
-        <div class="form-group">
-            <label>Default Video Quality</label>
-            <select id="prefQuality">
-                <option value="auto">Auto (Adaptive)</option>
-                <option value="4k">4K Ultra HD</option>
-                <option value="1080p">1080p Full HD</option>
-                <option value="720p">720p HD</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label>Auto-play Next Channel</label>
-            <select id="prefAutoplay">
-                <option value="on">Enabled</option>
-                <option value="off">Disabled</option>
-            </select>
-        </div>
-        <button onclick="savePrefs()" class="btn-play">Save Settings</button>
+    <div id="modalBackdrop" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; z-index: 1000;" onclick="closeModal()"></div>
+    <div id="playlistModal" style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card); padding: 30px; border-radius: 20px; display: none; z-index: 1001; width: 350px;">
+        <h3 id="mTitle" style="margin-bottom: 20px;">Add Playlist</h3>
+        <input type="hidden" id="editId">
+        <input type="text" id="pName" placeholder="Name" style="width:100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; background: var(--bg); color: var(--text); border: 1px solid var(--border); outline: none;">
+        <input type="text" id="pUrl" placeholder="M3U URL" style="width:100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; background: var(--bg); color: var(--text); border: 1px solid var(--border); outline: none;">
+        <button onclick="savePlaylist()" class="btn-play">Save to Library</button>
     </div>
 
     <script>
-        let showFavoritesOnly = false;
-        
-        const defaultServers = [
-            { id: 's1', name: "Global Sports", url: "sports.m3u" },
-            { id: 's2', name: "HD Movies", url: "movies.m3u" }
+        let currentView = 'all';
+
+        // থিম পরিবর্তনের ফাংশন
+        function toggleTheme() {
+            const isDark = document.getElementById('darkModeToggle').checked;
+            document.body.setAttribute('data-theme', isDark ? 'dark' : 'light');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        }
+
+        // পেজ লোড হওয়ার সময় থিম চেক করা
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.setAttribute('data-theme', 'light');
+            document.getElementById('darkModeToggle').checked = false;
+        }
+
+        const defaultData = [
+            { id: 'd1', name: "Live Sports 4K", url: "https://server.com/sports.m3u", type: 'default' },
+            { id: 'd2', name: "Movies & Series", url: "https://server.com/movies.m3u", type: 'default' },
+            { id: 'd3', name: "Discovery World", url: "https://server.com/disco.m3u", type: 'default' }
         ];
 
         function render() {
             const grid = document.getElementById('playlistGrid');
             const saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
-            const favorites = JSON.parse(localStorage.getItem('fav_playlists')) || [];
-            const all = [...defaultServers, ...saved];
-            const filter = document.getElementById('searchInput').value.toLowerCase();
-
-            grid.innerHTML = '';
+            const favorites = JSON.parse(localStorage.getItem('fav_list')) || [];
+            const all = [...defaultData, ...saved];
+            const search = document.getElementById('searchInput').value.toLowerCase();
             
+            grid.innerHTML = '';
+
             all.forEach(p => {
                 const isFav = favorites.includes(p.id);
-                if (showFavoritesOnly && !isFav) return;
-                if (!p.name.toLowerCase().includes(filter)) return;
+                if (currentView === 'fav' && !isFav) return;
+                if (!p.name.toLowerCase().includes(search)) return;
 
                 const card = document.createElement('div');
                 card.className = 'playlist-card';
                 card.innerHTML = `
-                    <i class="fas fa-heart fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(event, '${p.id}')"></i>
-                    <div style="font-size: 2.5rem; color: var(--accent); margin-bottom: 15px;"><i class="fas fa-tv"></i></div>
-                    <h3>${p.name}</h3>
-                    <p style="color: var(--text-dim); font-size: 0.8rem; margin-top: 5px;">${p.url}</p>
+                    <div class="card-actions">
+                        <i class="fas fa-heart action-icon" style="color: ${isFav ? '#ff4757' : ''}" onclick="toggleFav(event, '${p.id}')"></i>
+                        ${p.type !== 'default' ? `<i class="fas fa-edit action-icon" onclick="editPlaylist(event, '${p.id}')"></i> <i class="fas fa-trash action-icon" onclick="deletePlaylist(event, '${p.id}')"></i>` : ''}
+                    </div>
+                    <div style="font-size: 1.8rem; color: var(--accent); margin-bottom: 10px;"><i class="fas fa-tv"></i></div>
+                    <h4 style="margin-bottom: 5px;">${p.name}</h4>
+                    <p style="font-size: 0.7rem; color: var(--text-dim); word-break: break-all;">${p.url}</p>
                     <button class="btn-play">Watch Now</button>
                 `;
                 grid.appendChild(card);
             });
         }
 
-        // Favorites Logic
+        function setView(v) {
+            currentView = v;
+            document.getElementById('navAll').classList.toggle('active', v === 'all');
+            document.getElementById('navFav').classList.toggle('active', v === 'fav');
+            render();
+        }
+
+        function openModal() {
+            document.getElementById('playlistModal').style.display = 'block';
+            document.getElementById('modalBackdrop').style.display = 'block';
+            document.getElementById('mTitle').innerText = "Add Playlist";
+            document.getElementById('editId').value = "";
+            document.getElementById('pName').value = "";
+            document.getElementById('pUrl').value = "";
+        }
+
+        function closeModal() {
+            document.getElementById('playlistModal').style.display = 'none';
+            document.getElementById('modalBackdrop').style.display = 'none';
+        }
+
+        function savePlaylist() {
+            const name = document.getElementById('pName').value;
+            const url = document.getElementById('pUrl').value;
+            const editId = document.getElementById('editId').value;
+            if(!name || !url) return alert("Fields cannot be empty!");
+
+            let saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
+            if(editId) {
+                saved = saved.map(x => x.id === editId ? {...x, name, url} : x);
+            } else {
+                saved.push({ id: 'u' + Date.now(), name, url, type: 'user' });
+            }
+            localStorage.setItem('user_playlists', JSON.stringify(saved));
+            closeModal();
+            render();
+        }
+
+        function editPlaylist(e, id) {
+            e.stopPropagation();
+            const playlists = [...defaultData, ...(JSON.parse(localStorage.getItem('user_playlists')) || [])];
+            const item = playlists.find(x => x.id === id);
+            openModal();
+            document.getElementById('mTitle').innerText = "Edit Playlist";
+            document.getElementById('editId').value = item.id;
+            document.getElementById('pName').value = item.name;
+            document.getElementById('pUrl').value = item.url;
+        }
+
+        function deletePlaylist(e, id) {
+            e.stopPropagation();
+            if(confirm("Delete this?")) {
+                let saved = JSON.parse(localStorage.getItem('user_playlists')) || [];
+                saved = saved.filter(x => x.id !== id);
+                localStorage.setItem('user_playlists', JSON.stringify(saved));
+                render();
+            }
+        }
+
         function toggleFav(e, id) {
             e.stopPropagation();
-            let favorites = JSON.parse(localStorage.getItem('fav_playlists')) || [];
-            if (favorites.includes(id)) {
-                favorites = favorites.filter(favId => favId !== id);
-            } else {
-                favorites.push(id);
-            }
-            localStorage.setItem('fav_playlists', JSON.stringify(favorites));
+            let favs = JSON.parse(localStorage.getItem('fav_list')) || [];
+            favs = favs.includes(id) ? favs.filter(x => x !== id) : [...favs, id];
+            localStorage.setItem('fav_list', JSON.stringify(favs));
             render();
         }
 
-        document.getElementById('btnFav').onclick = function() {
-            showFavoritesOnly = true;
-            this.classList.add('active');
-            document.getElementById('btnHome').classList.remove('active');
-            document.getElementById('statusHeader').innerText = "Favorite Playlists";
-            render();
-        };
-
-        document.getElementById('btnHome').onclick = function() {
-            showFavoritesOnly = false;
-            this.classList.add('active');
-            document.getElementById('btnFav').classList.remove('active');
-            document.getElementById('statusHeader').innerText = "All Playlists";
-            render();
-        };
-
-        // Preferences Logic
-        function openPref() {
-            document.getElementById('prefModal').style.display = 'block';
-            document.getElementById('backdrop').style.display = 'block';
-            
-            // Load saved settings
-            const prefs = JSON.parse(localStorage.getItem('app_prefs')) || { quality: 'auto', autoplay: 'on' };
-            document.getElementById('prefQuality').value = prefs.quality;
-            document.getElementById('prefAutoplay').value = prefs.autoplay;
-        }
-
-        function savePrefs() {
-            const prefs = {
-                quality: document.getElementById('prefQuality').value,
-                autoplay: document.getElementById('prefAutoplay').value
-            };
-            localStorage.setItem('app_prefs', JSON.stringify(prefs));
-            alert("Settings Saved!");
-            closeModals();
-        }
-
-        function closeModals() {
-            document.getElementById('prefModal').style.display = 'none';
-            document.getElementById('backdrop').style.display = 'none';
-        }
-
-        document.getElementById('searchInput').oninput = render;
         render();
     </script>
 </body>
