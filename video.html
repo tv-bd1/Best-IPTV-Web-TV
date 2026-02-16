@@ -26,54 +26,38 @@ body { background: var(--bg); color: var(--text); height: 100vh; display: flex; 
 .player-section { flex: 1; display: flex; flex-direction: column; background: #000; position: relative; }
 
 .player-wrap { 
-    position: relative; 
-    width: 100%; 
-    flex: 1; 
-    background: #000; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    overflow: hidden; 
+    position: relative; width: 100%; flex: 1; 
+    background: #000; display: flex; align-items: center; justify-content: center; 
+    overflow: hidden; cursor: none;
 }
-video { width: 100%; height: 100%; object-fit: contain; z-index: 5; cursor: none; }
+video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-events: none; }
 
-/* AUDIO VISUALIZER ANIMATION */
-#audioAnim { 
-    position: absolute; inset: 0; 
-    display: none; align-items: center; 
-    justify-content: center; gap: 6px; 
-    background: #080808; z-index: 4; 
+/* HUD FOR BRIGHTNESS/VOLUME */
+#hud { 
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+    color: white; z-index: 1000; display: none; text-align: center; 
+    background: rgba(0,0,0,0.7); padding: 25px; border-radius: 20px; 
+    pointer-events: none; border: 1px solid var(--accent); 
 }
+#hud i { display: block; font-size: 3rem; margin-bottom: 10px; color: var(--accent); }
+
+/* AUDIO ANIMATION */
+#audioAnim { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; gap: 6px; background: #080808; z-index: 4; }
 .v-bar { width: 8px; background: linear-gradient(to top, var(--accent), #fff); border-radius: 50px; animation: jump 0.6s infinite alternate; }
 @keyframes jump { 0% { height: 10%; opacity: 0.3; } 100% { height: 70%; opacity: 1; } }
-
-/* SIDEBAR */
-.sidebar { 
-    width: 400px; 
-    background: var(--sidebar); 
-    border-left: 1px solid #222; 
-    display: flex; 
-    flex-direction: column; 
-    z-index: 100;
-}
-
-#loader { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); z-index: 200; }
-.spinner { width: 50px; height: 50px; border: 5px solid #333; border-top: 5px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { 100% { transform: rotate(360deg); } }
 
 /* CONTROLS OVERLAY */
 .controls-overlay { 
     position: absolute; inset: 0; background: rgba(0,0,0,0.3); 
-    opacity: 0; visibility: hidden; 
-    transition: 0.4s ease; 
+    opacity: 0; visibility: hidden; transition: 0.4s ease; 
     z-index: 150; display: flex; flex-direction: column; justify-content: flex-end; 
 }
 .controls-overlay.show { opacity: 1; visibility: visible; }
 
 .bottom-bar { padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.9)); display: flex; justify-content: space-between; align-items: center; }
-.ctrl-group { display: flex; align-items: center; gap: 25px; }
-.ctrl-group i { font-size: 1.6rem; cursor: pointer; color: #fff; transition: 0.2s; }
-.ctrl-group i:hover { color: var(--accent); transform: scale(1.2); }
+.ctrl-group { display: flex; align-items: center; gap: 20px; }
+.ctrl-group i { font-size: 1.5rem; cursor: pointer; color: #fff; transition: 0.2s; }
+.ctrl-group i:hover { color: var(--accent); transform: scale(1.1); }
 
 /* POP-UP MENU */
 .pop-menu { 
@@ -81,32 +65,37 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; cursor: none
     background: rgba(20, 20, 20, 0.95); border: 1px solid #333; 
     border-radius: 12px; display: none; flex-direction: column; 
     z-index: 200; min-width: 180px; overflow: hidden; 
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
 }
-.pop-menu button { background: none; border: none; color: white; padding: 14px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 0.9rem; }
+.pop-menu button { background: none; border: none; color: white; padding: 12px; cursor: pointer; border-bottom: 1px solid #222; text-align: left; font-size: 0.9rem; }
 .pop-menu button:hover { background: var(--accent); color: #000; }
 
-/* INFO & TABS */
-.info-header { padding: 20px; background: #0a0a0a; border-bottom: 1px solid #222; display: flex; align-items: center; gap: 15px; }
-.current-logo { width: 55px; height: 55px; border-radius: 10px; object-fit: cover; border: 2px solid #333; }
+/* SIDEBAR */
+.sidebar { width: 400px; background: var(--sidebar); border-left: 1px solid #222; display: flex; flex-direction: column; }
 .tabs { display: flex; background: #111; border-bottom: 1px solid #222; }
-.tabs div { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #666; font-weight: 600; font-size: 0.9rem; }
-.tabs div.active-tab { color: var(--accent); border-bottom: 3px solid var(--accent); }
+.tabs div { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #666; font-weight: 600; font-size: 0.85rem; }
+.tabs div.active-tab { color: var(--accent); border-bottom: 2px solid var(--accent); }
 
-.list { flex: 1; overflow-y: auto; padding: 15px; }
-.row { display: flex; align-items: center; gap: 15px; background: var(--card); padding: 12px; border-radius: 12px; margin-bottom: 10px; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
+.list { flex: 1; overflow-y: auto; padding: 10px; background: var(--sidebar); }
+.row { display: flex; align-items: center; gap: 12px; background: var(--card); padding: 10px; border-radius: 10px; margin-bottom: 8px; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
 .row:hover { background: #252525; transform: translateX(5px); }
 .row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.08); }
-.list-logo { width: 45px; height: 45px; border-radius: 8px; }
+.list-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
+
+#loader { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); z-index: 200; }
+.spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
 <div class="main-wrapper">
     <div class="player-section">
-        <div class="player-wrap" id="playerArea" onclick="handleVideoClick(event)">
+        <div class="player-wrap" id="playerArea">
             <div id="loader"><div class="spinner"></div></div>
-            <div id="audioAnim"></div> <video id="video" playsinline crossorigin="anonymous"></video>
+            <div id="hud"><i id="hudIcon"></i><span id="hudValue"></span></div>
+            <div id="audioAnim"></div>
+            
+            <video id="video" playsinline crossorigin="anonymous"></video>
             
             <div class="pop-menu" id="popMenu"></div>
             
@@ -126,13 +115,12 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; cursor: none
             </div>
         </div>
         
-        <div class="info-header">
-            <img id="currentLogo" class="current-logo" src="https://i.imgur.com/8Qf6Y0L.png">
+        <div class="info-header" style="padding: 15px; background: #0a0a0a; border-top: 1px solid #222; display: flex; align-items: center; gap: 15px;">
+            <img id="currentLogo" style="width: 50px; height: 50px; border-radius: 10px; object-fit: cover;" src="https://i.imgur.com/8Qf6Y0L.png">
             <div style="flex:1;">
-                <h3 id="title" style="font-size:1.3rem;">IPTV PRO Desktop</h3>
-                <small style="color:var(--accent); letter-spacing: 1px;">PREMIUM LIVE STREAMING</small>
+                <h3 id="title" style="font-size:1.1rem;">IPTV PRO Desktop</h3>
+                <small id="count" style="color:var(--accent);">0 CHANNELS</small>
             </div>
-            <div id="count" style="font-weight: bold; opacity: 0.6;">0 CH</div>
         </div>
     </div>
 
@@ -146,10 +134,10 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; cursor: none
 </div>
 
 <script>
-const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), audioAnim=document.getElementById('audioAnim'), loader=document.getElementById('loader');
-let hls=new Hls(), allChannels=[], isFavView=false, controlTimer;
+const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), audioAnim=document.getElementById('audioAnim'), loader=document.getElementById('loader'), hud=document.getElementById('hud'), hudIcon=document.getElementById('hudIcon'), hudValue=document.getElementById('hudValue');
+let hls=new Hls(), allChannels=[], isFavView=false, brightness=1, controlTimer;
 
-// Create visualizer bars
+// অডিও ভিজ্যুয়ালাইজার বার তৈরি
 for(let i=0; i<25; i++) {
     let bar = document.createElement('div');
     bar.className = 'v-bar';
@@ -157,68 +145,61 @@ for(let i=0; i<25; i++) {
     audioAnim.appendChild(bar);
 }
 
-// --- AUTO HIDE LOGIC ---
+// কন্ট্রোল শো/হাইড লজিক
 function showControls() {
     controls.classList.add('show');
     playerArea.style.cursor = 'default';
-    video.style.cursor = 'default';
     clearTimeout(controlTimer);
     controlTimer = setTimeout(() => {
         if (!video.paused) {
             controls.classList.remove('show');
             popMenu.style.display = 'none';
             playerArea.style.cursor = 'none';
-            video.style.cursor = 'none';
         }
     }, 3000);
 }
 
-playerArea.addEventListener('mousemove', showControls);
-
-// Space Button to Play/Pause
-document.addEventListener('keydown', (e) => {
-    if (e.code === "Space") {
-        e.preventDefault(); // Prevent page scroll
-        togglePlay();
-    }
-});
-
-// Single Click to Play/Pause
-function handleVideoClick(e) {
-    if (e.target === video || e.target === playerArea) {
-        togglePlay(e);
-    }
-}
-
-// Double Click to Hide/Show immediately
-playerArea.addEventListener('dblclick', (e) => {
-    if(controls.classList.contains('show')) {
-        controls.classList.remove('show');
-        popMenu.style.display = 'none';
-        clearTimeout(controlTimer);
-    } else {
-        showControls();
-    }
-});
-
-function togglePlay(e) { 
-    if(e) e.stopPropagation(); 
+// প্লে/পজ ফাংশন
+function togglePlay(e) {
+    if(e) e.stopPropagation();
     if (video.paused) {
         video.play();
-        document.getElementById('pp').className="fas fa-pause";
+        document.getElementById('pp').className = "fas fa-pause";
     } else {
         video.pause();
-        document.getElementById('pp').className="fas fa-play";
-        showControls(); 
+        document.getElementById('pp').className = "fas fa-play";
+        showControls();
     }
 }
 
-video.onplaying = () => {
-    loader.style.display = 'none';
-    // Show visualizer if it's a radio/audio stream (height is 0)
-    audioAnim.style.display = (video.videoHeight === 0 && !video.paused) ? 'flex' : 'none';
+// মাউস হুইল কন্ট্রোল (Brightness & Volume)
+playerArea.onwheel = (e) => {
+    e.preventDefault();
+    showControls();
+    hud.style.display = 'block';
+    if (e.clientX < playerArea.clientWidth / 2) {
+        brightness = Math.min(Math.max(brightness + (e.deltaY < 0 ? 0.05 : -0.05), 0.3), 1.5);
+        playerArea.style.filter = `brightness(${brightness})`;
+        hudIcon.className = 'fas fa-sun';
+        hudValue.innerText = Math.round(brightness * 100) + "%";
+    } else {
+        let v = Math.min(Math.max(video.volume + (e.deltaY < 0 ? 0.05 : -0.05), 0), 1);
+        video.volume = v;
+        hudIcon.className = v === 0 ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+        hudValue.innerText = Math.round(v * 100) + "%";
+    }
+    clearTimeout(window.hudT);
+    window.hudT = setTimeout(() => hud.style.display = 'none', 1000);
 };
-video.onwaiting = () => loader.style.display = 'flex';
+
+// ইভেন্ট লিসেনার্স
+playerArea.onmousemove = showControls;
+playerArea.onclick = (e) => { if(e.target === playerArea) togglePlay(); };
+playerArea.ondblclick = toggleFull;
+
+document.addEventListener('keydown', (e) => {
+    if (e.code === "Space") { e.preventDefault(); togglePlay(); }
+});
 
 function play(url, name, logo) {
     loader.style.display = 'flex';
@@ -238,9 +219,14 @@ function play(url, name, logo) {
     render();
 }
 
+video.onplaying = () => {
+    loader.style.display = 'none';
+    audioAnim.style.display = (video.videoHeight === 0) ? 'flex' : 'none';
+};
+video.onwaiting = () => loader.style.display = 'flex';
+
 function showQualityMenu(e) {
-    e.stopPropagation();
-    showControls();
+    e.stopPropagation(); showControls();
     let html = `<button onclick="setQuality(-1)">Auto Quality</button>`;
     if(hls.levels) hls.levels.forEach((l, i) => html += `<button onclick="setQuality(${i})">${l.height || i}p Quality</button>`);
     popMenu.innerHTML = html;
@@ -248,10 +234,9 @@ function showQualityMenu(e) {
 }
 
 function showScalingMenu(e) {
-    e.stopPropagation();
-    showControls();
+    e.stopPropagation(); showControls();
     popMenu.innerHTML = `
-        <button onclick="setScaling('contain')">Original</button>
+        <button onclick="setScaling('contain')">Original Aspect</button>
         <button onclick="setScaling('fill')">Fill Screen</button>
         <button onclick="setScaling('cover')">Stretch 16:9</button>
     `;
@@ -264,7 +249,7 @@ function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
 function render() {
     let arr = isFavView ? JSON.parse(localStorage.getItem('iptv_pc_favs') || "[]") : allChannels;
     listArea.innerHTML = "";
-    document.getElementById('count').innerText = arr.length + " CH";
+    document.getElementById('count').innerText = arr.length + " CHANNELS";
     arr.forEach(ch => {
         const isActive = (video.src === ch.url || hls.url === ch.url);
         const d = document.createElement('div');
@@ -288,175 +273,6 @@ async function toggleFull(e) {
     else document.exitFullscreen();
 }
 
-// URL Playlist Fetch
-const playlistUrl = new URLSearchParams(location.search).get('playlist');
-if(playlistUrl) {
-    fetch(playlistUrl).then(r=>r.text()).then(data => {
-        let lines=data.split('\n'), c={};
-        lines.forEach(l => {
-            if(l.startsWith('#EXTINF')){
-                c.name = l.split(',')[1]?.trim();
-                c.logo = l.match(/tvg-logo="([^"]*)"/)?.[1];
-            } else if(l.startsWith('http')) {
-                c.url = l.trim(); allChannels.push({...c}); c={};
-            }
-        });
-        render();
-        if(allChannels[0]) play(allChannels[0].url, allChannels[0].name, allChannels[0].logo);
-    });
-}
-</script>
-</body>
-</html>                        <i class="fas fa-cog" onclick="showQualityMenu(event)"></i>
-                        <i class="fas fa-sliders-h" onclick="showScalingMenu(event)"></i>
-                        <i class="fas fa-expand" onclick="toggleFull(event)"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="info-header">
-            <img id="currentLogo" class="current-logo" src="https://i.imgur.com/8Qf6Y0L.png">
-            <div style="flex:1;">
-                <h3 id="title">IPTV PRO</h3>
-                <small style="color:var(--accent);">PREMIUM LIVE</small>
-            </div>
-            <div id="count">0 CH</div>
-        </div>
-    </div>
-
-    <div class="sidebar">
-        <div class="tabs">
-            <div id="allBtnTab" class="active-tab" onclick="switchTab('all', this)">ALL LIST</div>
-            <div id="favBtnTab" onclick="switchTab('fav', this)">FAVORITES</div>
-        </div>
-        <div class="list" id="list"></div>
-    </div>
-</div>
-
-<script>
-const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), loader=document.getElementById('loader');
-let hls=new Hls(), allChannels=[], isFavView=false, controlTimer;
-
-// --- AUTO HIDE LOGIC (Controls + Popups) ---
-function showControls() {
-    controls.classList.add('show');
-    playerArea.style.cursor = 'default';
-    video.style.cursor = 'default';
-    clearTimeout(controlTimer);
-    controlTimer = setTimeout(() => {
-        if (!video.paused) {
-            controls.classList.remove('show');
-            popMenu.style.display = 'none'; // Hide popups too
-            playerArea.style.cursor = 'none';
-            video.style.cursor = 'none';
-        }
-    }, 3000);
-}
-
-playerArea.addEventListener('mousemove', showControls);
-
-// Single Click to Play/Pause (For PC/User)
-function handleVideoClick(e) {
-    if (e.target === video || e.target === playerArea) {
-        togglePlay(e);
-    }
-}
-
-// Double Click to Hide/Show immediately
-playerArea.addEventListener('dblclick', (e) => {
-    if(controls.classList.contains('show')) {
-        controls.classList.remove('show');
-        popMenu.style.display = 'none';
-        clearTimeout(controlTimer);
-    } else {
-        showControls();
-    }
-});
-
-function togglePlay(e) { 
-    if(e) e.stopPropagation(); 
-    if (video.paused) {
-        video.play();
-        document.getElementById('pp').className="fas fa-pause";
-    } else {
-        video.pause();
-        document.getElementById('pp').className="fas fa-play";
-        showControls(); 
-    }
-}
-
-function play(url, name, logo) {
-    loader.style.display = 'flex';
-    document.getElementById('title').innerText = name;
-    document.getElementById('channelTitle').innerText = name;
-    document.getElementById('currentLogo').src = logo || "https://i.imgur.com/8Qf6Y0L.png";
-    
-    if(url.includes('.m3u8')){
-        hls.destroy(); hls = new Hls();
-        hls.loadSource(url); hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    } else { 
-        hls.destroy(); video.src = url; video.play(); 
-    }
-    document.getElementById('pp').className = "fas fa-pause";
-    render();
-}
-
-function showQualityMenu(e) {
-    e.stopPropagation();
-    showControls(); // Reset timer
-    let html = `<button onclick="setQuality(-1)">Auto Quality</button>`;
-    if(hls.levels) hls.levels.forEach((l, i) => html += `<button onclick="setQuality(${i})">${l.height || i}p Quality</button>`);
-    popMenu.innerHTML = html;
-    popMenu.style.display = (popMenu.style.display !== 'flex') ? 'flex' : 'none';
-}
-
-function showScalingMenu(e) {
-    e.stopPropagation();
-    showControls(); // Reset timer
-    popMenu.innerHTML = `
-        <button onclick="setScaling('contain')">Original</button>
-        <button onclick="setScaling('fill')">Fill Screen</button>
-        <button onclick="setScaling('cover')">Stretch 16:9</button>
-    `;
-    popMenu.style.display = (popMenu.style.display !== 'flex') ? 'flex' : 'none';
-}
-
-function setScaling(t) { video.style.objectFit = t; popMenu.style.display = 'none'; }
-function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
-
-function render() {
-    let arr = isFavView ? JSON.parse(localStorage.getItem('iptv_pc_favs') || "[]") : allChannels;
-    listArea.innerHTML = "";
-    document.getElementById('count').innerText = arr.length + " CH";
-    arr.forEach(ch => {
-        const isActive = (video.src === ch.url || hls.url === ch.url);
-        const d = document.createElement('div');
-        d.className = `row ${isActive ? 'active' : ''}`;
-        d.innerHTML = `<img src="${ch.logo}" class="list-logo"> <div class="name">${ch.name}</div>`;
-        d.onclick = () => play(ch.url, ch.name, ch.logo);
-        listArea.appendChild(d);
-    });
-}
-
-function switchTab(type, el) {
-    document.querySelectorAll('.tabs div').forEach(d => d.classList.remove('active-tab'));
-    el.classList.add('active-tab');
-    isFavView = (type === 'fav');
-    render();
-}
-
-async function toggleFull(e) {
-    if(e) e.stopPropagation();
-    if (!document.fullscreenElement) await playerArea.requestFullscreen();
-    else document.exitFullscreen();
-}
-
-video.onwaiting = () => loader.style.display = 'flex';
-video.onplaying = () => loader.style.display = 'none';
-
-// Playlist Logic
 const playlistUrl = new URLSearchParams(location.search).get('playlist');
 if(playlistUrl) {
     fetch(playlistUrl).then(r=>r.text()).then(data => {
