@@ -73,13 +73,17 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 .sidebar { width: 400px; background: var(--sidebar); border-left: 1px solid #222; display: flex; flex-direction: column; }
 .tabs { display: flex; background: #111; border-bottom: 1px solid #222; }
 .tabs div { flex: 1; padding: 15px; text-align: center; cursor: pointer; color: #666; font-weight: 600; font-size: 0.85rem; }
-.tabs div.active-tab { color: var(--accent); border-bottom: 2px solid var(--accent); }
+.tabs div.active-tab { color: var(--accent); border-bottom: 2px solid var(--accent); background: rgba(0,229,255,0.05); }
 
 .list { flex: 1; overflow-y: auto; padding: 10px; background: var(--sidebar); }
-.row { display: flex; align-items: center; gap: 12px; background: var(--card); padding: 10px; border-radius: 10px; margin-bottom: 8px; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
+.row { display: flex; align-items: center; gap: 12px; background: var(--card); padding: 10px; border-radius: 10px; margin-bottom: 8px; cursor: pointer; border: 1px solid #222; transition: 0.2s; position: relative; }
 .row:hover { background: #252525; transform: translateX(5px); }
 .row.active { border-color: var(--accent); background: rgba(0, 229, 255, 0.08); }
 .list-logo { width: 45px; height: 45px; border-radius: 8px; object-fit: cover; }
+.name { flex: 1; font-size: 0.9rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.star-btn { font-size: 1.2rem; color: #333; transition: 0.2s; padding: 5px; }
+.star-btn.is-fav { color: var(--fav); }
 
 #loader { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); z-index: 200; }
 .spinner { width: 40px; height: 40px; border: 4px solid #333; border-top: 4px solid var(--accent); border-radius: 50%; animation: spin 1s linear infinite; }
@@ -126,10 +130,17 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 
     <div class="sidebar">
         <div class="tabs">
-            <div id="allBtnTab" class="active-tab" onclick="switchTab('all', this)">ALL LIST</div>
-            <div id="favBtnTab" onclick="switchTab('fav', this)">FAVORITES</div>
+            <div id="allBtnTab" class="active-tab" onclick="switchTab('all', this)"><i class="fas fa-list-ul"></i> ALL LIST</div>
+            <div id="favBtnTab" onclick="switchTab('fav', this)"><i class="fas fa-star"></i> FAVORITES</div>
         </div>
+        
         <div class="list" id="list"></div>
+
+        <div style="padding: 15px; border-top: 1px solid #222; text-align: center; background: #0a0a0a;">
+            <a href="https://t.me/bestiptvlive" target="_blank" style="color: var(--accent); text-decoration: none; font-size: 0.9rem; font-weight: bold;">
+                <i class="fab fa-telegram-plane"></i> Join Telegram Community
+            </a>
+        </div>
     </div>
 </div>
 
@@ -137,7 +148,7 @@ video { width: 100%; height: 100%; object-fit: contain; z-index: 5; pointer-even
 const video=document.getElementById('video'), playerArea=document.getElementById('playerArea'), popMenu=document.getElementById('popMenu'), controls=document.getElementById('controls'), listArea=document.getElementById('list'), audioAnim=document.getElementById('audioAnim'), loader=document.getElementById('loader'), hud=document.getElementById('hud'), hudIcon=document.getElementById('hudIcon'), hudValue=document.getElementById('hudValue');
 let hls=new Hls(), allChannels=[], isFavView=false, brightness=1, controlTimer;
 
-// অডিও ভিজ্যুয়ালাইজার বার তৈরি
+// অডিও ভিজ্যুয়ালাইজার
 for(let i=0; i<25; i++) {
     let bar = document.createElement('div');
     bar.className = 'v-bar';
@@ -145,7 +156,6 @@ for(let i=0; i<25; i++) {
     audioAnim.appendChild(bar);
 }
 
-// কন্ট্রোল শো/হাইড লজিক
 function showControls() {
     controls.classList.add('show');
     playerArea.style.cursor = 'default';
@@ -159,47 +169,31 @@ function showControls() {
     }, 3000);
 }
 
-// প্লে/পজ ফাংশন
 function togglePlay(e) {
     if(e) e.stopPropagation();
-    if (video.paused) {
-        video.play();
-        document.getElementById('pp').className = "fas fa-pause";
-    } else {
-        video.pause();
-        document.getElementById('pp').className = "fas fa-play";
-        showControls();
-    }
+    if (video.paused) { video.play(); document.getElementById('pp').className = "fas fa-pause"; }
+    else { video.pause(); document.getElementById('pp').className = "fas fa-play"; showControls(); }
 }
 
-// মাউস হুইল কন্ট্রোল (Brightness & Volume)
+// মাউস হুইল কন্ট্রোল (Brightness/Volume)
 playerArea.onwheel = (e) => {
-    e.preventDefault();
-    showControls();
+    e.preventDefault(); showControls();
     hud.style.display = 'block';
     if (e.clientX < playerArea.clientWidth / 2) {
         brightness = Math.min(Math.max(brightness + (e.deltaY < 0 ? 0.05 : -0.05), 0.3), 1.5);
         playerArea.style.filter = `brightness(${brightness})`;
-        hudIcon.className = 'fas fa-sun';
-        hudValue.innerText = Math.round(brightness * 100) + "%";
+        hudIcon.className = 'fas fa-sun'; hudValue.innerText = Math.round(brightness * 100) + "%";
     } else {
         let v = Math.min(Math.max(video.volume + (e.deltaY < 0 ? 0.05 : -0.05), 0), 1);
         video.volume = v;
-        hudIcon.className = v === 0 ? 'fas fa-volume-mute' : 'fas fa-volume-up';
-        hudValue.innerText = Math.round(v * 100) + "%";
+        hudIcon.className = v === 0 ? 'fas fa-volume-mute' : 'fas fa-volume-up'; hudValue.innerText = Math.round(v * 100) + "%";
     }
-    clearTimeout(window.hudT);
-    window.hudT = setTimeout(() => hud.style.display = 'none', 1000);
+    clearTimeout(window.hudT); window.hudT = setTimeout(() => hud.style.display = 'none', 1000);
 };
 
-// ইভেন্ট লিসেনার্স
 playerArea.onmousemove = showControls;
 playerArea.onclick = (e) => { if(e.target === playerArea) togglePlay(); };
-playerArea.ondblclick = toggleFull;
-
-document.addEventListener('keydown', (e) => {
-    if (e.code === "Space") { e.preventDefault(); togglePlay(); }
-});
+document.addEventListener('keydown', (e) => { if (e.code === "Space") { e.preventDefault(); togglePlay(); } });
 
 function play(url, name, logo) {
     loader.style.display = 'flex';
@@ -212,49 +206,37 @@ function play(url, name, logo) {
         hls.destroy(); hls = new Hls();
         hls.loadSource(url); hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => video.play());
-    } else { 
-        hls.destroy(); video.src = url; video.play(); 
-    }
+    } else { hls.destroy(); video.src = url; video.play(); }
     document.getElementById('pp').className = "fas fa-pause";
     render();
 }
 
-video.onplaying = () => {
-    loader.style.display = 'none';
-    audioAnim.style.display = (video.videoHeight === 0) ? 'flex' : 'none';
-};
-video.onwaiting = () => loader.style.display = 'flex';
+video.onplaying = () => { loader.style.display = 'none'; audioAnim.style.display = (video.videoHeight === 0) ? 'flex' : 'none'; };
 
-function showQualityMenu(e) {
-    e.stopPropagation(); showControls();
-    let html = `<button onclick="setQuality(-1)">Auto Quality</button>`;
-    if(hls.levels) hls.levels.forEach((l, i) => html += `<button onclick="setQuality(${i})">${l.height || i}p Quality</button>`);
-    popMenu.innerHTML = html;
-    popMenu.style.display = (popMenu.style.display !== 'flex') ? 'flex' : 'none';
+function toggleFav(e, ch) {
+    e.stopPropagation();
+    let favs = JSON.parse(localStorage.getItem('iptv_pc_favs') || "[]");
+    const index = favs.findIndex(f => f.url === ch.url);
+    if (index > -1) favs.splice(index, 1); else favs.push(ch);
+    localStorage.setItem('iptv_pc_favs', JSON.stringify(favs));
+    render();
 }
-
-function showScalingMenu(e) {
-    e.stopPropagation(); showControls();
-    popMenu.innerHTML = `
-        <button onclick="setScaling('contain')">Original Aspect</button>
-        <button onclick="setScaling('fill')">Fill Screen</button>
-        <button onclick="setScaling('cover')">Stretch 16:9</button>
-    `;
-    popMenu.style.display = (popMenu.style.display !== 'flex') ? 'flex' : 'none';
-}
-
-function setScaling(t) { video.style.objectFit = t; popMenu.style.display = 'none'; }
-function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
 
 function render() {
     let arr = isFavView ? JSON.parse(localStorage.getItem('iptv_pc_favs') || "[]") : allChannels;
     listArea.innerHTML = "";
     document.getElementById('count').innerText = arr.length + " CHANNELS";
     arr.forEach(ch => {
+        const favs = JSON.parse(localStorage.getItem('iptv_pc_favs') || "[]");
+        const isFav = favs.some(f => f.url === ch.url);
         const isActive = (video.src === ch.url || hls.url === ch.url);
         const d = document.createElement('div');
         d.className = `row ${isActive ? 'active' : ''}`;
-        d.innerHTML = `<img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'"> <div class="name">${ch.name}</div>`;
+        d.innerHTML = `
+            <img src="${ch.logo}" class="list-logo" onerror="this.src='https://i.imgur.com/8Qf6Y0L.png'">
+            <div class="name">${ch.name}</div>
+            <i class="fas fa-star star-btn ${isFav ? 'is-fav' : ''}" onclick="toggleFav(event, ${JSON.stringify(ch).replace(/"/g, '&quot;')})"></i>
+        `;
         d.onclick = () => play(ch.url, ch.name, ch.logo);
         listArea.appendChild(d);
     });
@@ -266,6 +248,23 @@ function switchTab(type, el) {
     isFavView = (type === 'fav');
     render();
 }
+
+function showQualityMenu(e) {
+    e.stopPropagation(); showControls();
+    let html = `<button onclick="setQuality(-1)">Auto Quality</button>`;
+    if(hls.levels) hls.levels.forEach((l, i) => html += `<button onclick="setQuality(${i})">${l.height || i}p Quality</button>`);
+    popMenu.innerHTML = html;
+    popMenu.style.display = (popMenu.style.display !== 'flex') ? 'flex' : 'none';
+}
+
+function showScalingMenu(e) {
+    e.stopPropagation(); showControls();
+    popMenu.innerHTML = `<button onclick="setScaling('contain')">Original</button><button onclick="setScaling('fill')">Fill Screen</button><button onclick="setScaling('cover')">Stretch 16:9</button>`;
+    popMenu.style.display = (popMenu.style.display !== 'flex') ? 'flex' : 'none';
+}
+
+function setScaling(t) { video.style.objectFit = t; popMenu.style.display = 'none'; }
+function setQuality(i) { hls.currentLevel = i; popMenu.style.display = 'none'; }
 
 async function toggleFull(e) {
     if(e) e.stopPropagation();
