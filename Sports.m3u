@@ -1,13 +1,10 @@
 #EXTM3U
 
-#EXTINF:-1 tvg-logo="https://png.pngtree.com/png-clipart/20230927/original/pngtree-bangladesh-vs-new-zealand-vector-png-image_13159368.png"group-title="PSL 2026" group-title="",BAN vs NEW
+#EXTINF:-1 tvg-logo="https://www.shutterstock.com/image-vector/new-zealand-vs-bangladesh-match-600nw-2567506881.jpg"group-title="PSL 2026" group-title="",BAN vs NEW
 https://buy.ottbangla.com/4k/amd/stream.php?id=T-Sports
 
 #EXTINF:-1 tvg-logo="https://png.pngtree.com/png-vector/20260323/ourmid/pngtree-ipl-t20-2026-official-cricket-tournament-logo-design-png-image_18940608.webp"group-title="IPL 2026" group-title="",IPL 2026
 https://bestiptv.bestiptv-pro.workers.dev/?url=http://stvlive.net:8080/sonyten5/index.m3u8
-
-#EXTINF:-1 tvg-logo="https://i.postimg.cc/xdRx82cG/20241005-165038.png" group-title="SPORTS" tvg-name="T Sports",T Sports
-https://buy.ottbangla.com/4k/amd/stream.php?id=T-Sports
 
 
 ########################## Sports ##########################
